@@ -28,6 +28,8 @@ namespace CatBreed.ApiClient
                .SetBaseUrl(BaseUrl.ToString())
                .SetApiEndpoint(string.Format(URL_END_GET_BREED))
                .SetMethod(HttpMethod.Get)
+               .AddParameter("limit", "10")
+               .AddHeader("x-api-key", "live_UUHGO2ZVXZYewuo2aFMAKaHi7OWzUYHct8Hf6OprNNXT4xbkSf95hCLFxrNKKPpe")
                .Build();
 
             return await SendRequest<IList<CatBreedModel>>(request);

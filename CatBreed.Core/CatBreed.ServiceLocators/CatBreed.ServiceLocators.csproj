@@ -10,7 +10,6 @@
     <None Remove="DI\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Services\" />
     <Folder Include="DI\" />
   </ItemGroup>
 </Project>
