@@ -1,16 +1,21 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using CatBreed.ApiClient;
+using CatBreed.ApiClient.ViewModels;
+using Java.Lang;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using static CatBreed.Droid.Adapters.ListViewAdapter;
@@ -38,16 +43,22 @@ namespace CatBreed.Droid.Adapters
 
     public class ListViewAdapter : RecyclerView.Adapter
     {
-        IList<CatBreedModel> _items;
+        List<CatBreedViewModel> _items;
         Context _context;
+        Action<CatBreedViewModel> _onDownloadClicked;
+        bool _isOnline;
 
         public override int ItemCount => _items == null ? 0 : _items.Count;
 
-        public ListViewAdapter(Context context, IList<CatBreedModel> items)
+        public ListViewAdapter(Context context, List<CatBreedViewModel> items, Action<CatBreedViewModel> onDownloadClicked, bool isOnline = true)
         {
             _context = context;
 
             _items = items;
+
+            _onDownloadClicked = onDownloadClicked;
+
+            _isOnline = isOnline;
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -60,13 +71,31 @@ namespace CatBreed.Droid.Adapters
 
             if (_items[position] != null)
             {
-                vh.TvName.Text = _items[position].Id;
+                vh.TvName.Text = _items[position].Name;
 
-                Glide
-                    .With(_context)
-                    .Load(_items[position].Url)
-                    .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
-                    .Into(vh.IvImage);
+                if (!_isOnline)
+                {
+                    vh.TvDownload.Visibility = ViewStates.Invisible;
+
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.InPreferredConfig = Bitmap.Config.Argb8888;
+                    Bitmap bitmap = BitmapFactory.DecodeFile(_items[position].Url, options);
+
+                    Glide.With(_context)
+                        .Load(bitmap)
+                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                        .Into(vh.IvImage);
+                }
+                else
+                {
+                    vh.TvDownload.Visibility = ViewStates.Visible;
+
+                    Glide
+                        .With(_context)
+                        .Load(_items[position].Url)
+                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                        .Into(vh.IvImage);
+                }
             }
             else
             {
@@ -80,6 +109,11 @@ namespace CatBreed.Droid.Adapters
         {
             var holder = new ViewHolder(LayoutInflater.From(_context).Inflate(Resource.Layout.ListViewLayout, parent, false), _context);
 
+            holder.TvDownload.Click += (sender, args) =>
+            {
+                _onDownloadClicked?.Invoke(_items[holder.Tag]);
+            };
+
             return holder;
         }
 
@@ -87,11 +121,13 @@ namespace CatBreed.Droid.Adapters
         {
             public TextView TvName { get; set; }
             public ImageView IvImage { get; set; }
+            public TextView TvDownload { get; set; }
             public int Tag { get; set; }
             public ViewHolder(View itemView, Context context) : base(itemView)
             {
                 TvName = itemView.FindViewById<TextView>(Resource.Id.tv_name);
                 IvImage = itemView.FindViewById<ImageView>(Resource.Id.iv_image);
+                TvDownload = itemView.FindViewById<TextView>(Resource.Id.tv_download);
             }
         }
     }

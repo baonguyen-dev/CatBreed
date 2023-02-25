@@ -6,26 +6,4 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/iv_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rcv_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <TextView
-        android:id="@+id/tv_count"
-        android:layout_below="@id/rcv_image"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"/>
-
-    <Button
-        android:id="@+id/btn_count"
-        android:layout_below="@id/tv_count"
-        android:layout_width="match_parent"
-        android:layout_height="30dp"/>
-
 </RelativeLayout>

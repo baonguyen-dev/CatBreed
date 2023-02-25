@@ -3,22 +3,30 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="5dp">
-    <!--
-    grid items for RecyclerView
-    -->
+
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="22dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#000" />
+
+    <TextView
+        android:id="@+id/tv_download"
+        android:layout_width="wrap_content"
+        android:layout_height="22dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="Download Image"
+        android:textColor="@android:color/black"
+        android:layout_alignParentRight="true"/>
+
     <ImageView
         android:id="@+id/iv_image"
+        android:layout_below="@id/tv_name"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:contentDescription="description" />
-    <TextView
-        android:id="@+id/tv_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="ABCD"
-        android:textSize="20sp"
-        android:textColor="#fff" />
 </RelativeLayout>

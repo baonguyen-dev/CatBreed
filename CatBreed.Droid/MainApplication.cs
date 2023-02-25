@@ -32,6 +32,7 @@ namespace CatBreed.Droid
         {
             ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>(new Uri(BASE_URL), string.Empty);
             ServiceLocator.Instance.Register<IFileService, DroidFileService>();
+            ServiceLocator.Instance.Register<IDeviceService, DroidDeviceService>();
         }
     }
 }

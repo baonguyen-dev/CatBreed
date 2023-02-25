@@ -20,19 +20,16 @@ using System.Runtime.InteropServices;
 using CatBreed.Droid.Adapters;
 using System.Linq;
 using Bumptech.Glide;
+using Android.Content;
+using CatBreed.Droid.Activities;
+using Android.Net;
 
 namespace CatBreed.Droid
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
-        private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
-        private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
-        private ImageView _ivCatBreed;
-        private TextView _tvCount;
-        private Button _btnCount;
-        private List<CatBreedModel> _model;
-        private RecyclerView _rcvImage;
+        
         private int PERMISSION_ALL = 1;
         private string[] PERMISSIONS = {
             Android.Manifest.Permission.WriteExternalStorage,
@@ -69,69 +66,7 @@ namespace CatBreed.Droid
                 }
             }
 
-            _ivCatBreed = FindViewById<ImageView>(Resource.Id.iv_image);
-
-            _rcvImage = FindViewById<RecyclerView>(Resource.Id.rcv_image);
-
-            _tvCount = FindViewById<TextView>(Resource.Id.tv_count);
-
-            _btnCount = FindViewById<Button>(Resource.Id.btn_count);
-
-            _btnCount.Click += _btnCount_Click; // set the Ada
-
-            Task.Factory.StartNew(async () =>
-            {
-                _model = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
-
-                //foreach(var cat in _model)
-                //{
-                //    //var data = _model[0].Url;
-
-                //    var path = _fileService.DownloadImage(cat.Id, cat.Url);
-
-                RunOnUiThread(() =>
-                {
-                    StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(1, LinearLayoutManager.Vertical);
-
-                    _rcvImage.SetLayoutManager(staggeredGridLayoutManager);
-
-                    ListViewAdapter customAdapter = new ListViewAdapter(this, _model);
-
-                    _rcvImage.SetAdapter(customAdapter);
-
-                    var scrollListener = new ListViewScrollListenner(async () =>
-                    {
-                        var count = customAdapter.ItemCount;
-
-                        var model = await _catBreedClient.GetCatBreed();
-
-                        _model.AddRange(model);
-
-                        customAdapter.NotifyItemInserted(count - 1);
-                    });
-
-                    _rcvImage.AddOnScrollListener(scrollListener);
-                    //Toast.MakeText(this, path, ToastLength.Long).Show();
-                    //customAdapter.NotifyDataSetChanged();
-                });
-                //    // set LayoutManager to RecyclerView
-                //    //  call the constructor of CustomAdapter to send the reference and data to Adapter
-                //}pter to RecyclerView
-
-
-            });
-
-        }
-
-        private void _btnCount_Click(object sender, EventArgs e)
-        {
-            var count = new Random().Next();
-            _tvCount.Text = count.ToString();
-        }
-
-        protected override void OnResume()
-        {
-            base.OnResume();
+            StartHomeAcitivity();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
@@ -143,6 +78,7 @@ namespace CatBreed.Droid
             {
                 if (grantResults.Length > 0 && grantResults[0] == Android.Content.PM.Permission.Granted)
                 {
+                    StartHomeAcitivity();
                 }
                 else
                 {
@@ -150,6 +86,15 @@ namespace CatBreed.Droid
                     Finish();
                 }
             }
+        }
+
+        private void StartHomeAcitivity()
+        {
+            Intent intent = new Intent();
+
+            intent.SetClass(this, typeof(HomeActivity));
+
+            StartActivity(intent);
         }
     }
 }

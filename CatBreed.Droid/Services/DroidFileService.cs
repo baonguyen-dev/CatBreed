@@ -59,8 +59,6 @@ namespace CatBreed.Droid.Services
 
         public string GetSdCardFolder()
         {
-            // TODO Bao: This is hardcoded app name
-
             var appName = "CatBreed";
 
             var path = "";
