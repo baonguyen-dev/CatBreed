@@ -69,6 +69,8 @@ namespace CatBreed.Droid.Activities
             {
                 ShowProgressBar(true);
 
+                _catBreedViewModels.Clear();
+
                 Task.Factory.StartNew(async () =>
                 {
                     if (!isOnline)
@@ -76,8 +78,6 @@ namespace CatBreed.Droid.Activities
                         _catEntities = _catBreedRepository.LoadAll().ToList();
 
                         var tempCatBreedViewModels = _catEntities.ToCatBreedViewModels();
-
-                        _catBreedViewModels.Clear();
 
                         _catBreedViewModels.AddRange(tempCatBreedViewModels);
                     }
@@ -169,7 +169,7 @@ namespace CatBreed.Droid.Activities
                     ShowProgressBar(false);
                 });
 
-            }, _deviceService.IsDeviceOnline());
+            });
 
             _rcvImage.SetAdapter(_listViewAdapter);
 

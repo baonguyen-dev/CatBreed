@@ -46,16 +46,16 @@ namespace CatBreed.Droid.Adapters
     public class ListViewAdapter : RecyclerView.Adapter
     {
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
+        private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
 
         List<CatBreedViewModel> _items;
         Context _context;
         Action<CatBreedViewModel> _onDownloadClicked;
         Action<CatBreedViewModel> _onBreedClicked;
-        bool _isOnline;
 
         public override int ItemCount => _items == null ? 0 : _items.Count;
 
-        public ListViewAdapter(Context context, List<CatBreedViewModel> items, Action<CatBreedViewModel> onBreedClicked, Action<CatBreedViewModel> onDownloadClicked, bool isOnline = true)
+        public ListViewAdapter(Context context, List<CatBreedViewModel> items, Action<CatBreedViewModel> onBreedClicked, Action<CatBreedViewModel> onDownloadClicked)
         {
             _context = context;
 
@@ -64,8 +64,6 @@ namespace CatBreed.Droid.Adapters
             _onBreedClicked = onBreedClicked;
 
             _onDownloadClicked = onDownloadClicked;
-
-            _isOnline = isOnline;
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -80,13 +78,11 @@ namespace CatBreed.Droid.Adapters
 
                 vh.TvName.Text = _items[position].Name;
 
-                if (!_isOnline)
+                if (!_deviceSerivce.IsDeviceOnline())
                 {
-                    _items[position].Url = _fileService.ReconstructImagePath(_items[position].Url);
-
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.InPreferredConfig = Bitmap.Config.Argb8888;
-                    Bitmap bitmap = BitmapFactory.DecodeFile(_items[position].Url, options);
+                    Bitmap bitmap = BitmapFactory.DecodeFile(_fileService.ReconstructImagePath(_items[position].Url), options);
 
                     Glide.With(_context)
                         .Load(bitmap)
