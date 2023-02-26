@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CatBreed.ApiClient.ViewModels;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
 using CoreGraphics;
@@ -17,6 +18,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 		public static readonly UINib Nib;
 
 		private Action<int> _onDownloadClicked;
+        private Action<int> _onBreedClicked;
 		private int _position;
 
 		static CatImageViewCell ()
@@ -33,6 +35,11 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
         {
             base.AwakeFromNib();
 
+            this.AddGestureRecognizer(new UITapGestureRecognizer(() =>
+            {
+                _onBreedClicked?.Invoke(_position);
+            }));
+
             TvDownload.UserInteractionEnabled = true;
 
             TvDownload.AddGestureRecognizer(new UITapGestureRecognizer(() =>
@@ -41,18 +48,32 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
             }));
         }
 
+        public void SetOnBreedClicked(Action<int> onBreedClicked)
+        {
+            _onBreedClicked = onBreedClicked;
+        }
+
         public void SetOnDownloadClicked(Action<int> onDownloadClicked)
 		{
 			_onDownloadClicked = onDownloadClicked;
 		}
 
-		public void UpdateData(int position, string name, string url, int height)
+		public void UpdateData(int position, string name, string url, QueryType queryType)
 		{
 			_position = position;
 
 			TvName.Text = name;
 
-            if (false)
+            if (queryType == QueryType.BREED)
+            {
+                TvDownload.Hidden = true;
+            }
+            else
+            {
+                TvDownload.Hidden = false;
+            }
+
+            if (true)
             {
                 Task.Factory.StartNew(async () =>
                 {
@@ -65,7 +86,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result, height);
+                                   SetImage(res.Result);
                                }
                            });
                        });
@@ -84,7 +105,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result, height);
+                                   SetImage(res.Result);
                                }
                            });
                        });
@@ -93,9 +114,9 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 
         }
 
-        public void SetImage(UIImage image, int height)
+        public void SetImage(UIImage image)
         {
-            IvImage.Frame = new CGRect(0, 0, this.Frame.Width, height);
+            IvImage.Frame = new CGRect(0, 0, this.Frame.Width, this.Frame.Height);
             IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
 
             this.Hidden = false;

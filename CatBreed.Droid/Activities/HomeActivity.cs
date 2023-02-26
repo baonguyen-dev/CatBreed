@@ -83,7 +83,7 @@ namespace CatBreed.Droid.Activities
                     }
                     else
                     {
-                        var tempCatBreedModels = await _catBreedClient.GetCatBreed(limit: 10) as List<CatBreedModel>;
+                        var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
 
                         foreach (var item in tempCatBreedModels)
                         {
@@ -120,7 +120,6 @@ namespace CatBreed.Droid.Activities
                 {
                     _svSearch.SetQuery(data.Id, true);
                 }
-
             }, (data) =>
             {
                 ShowProgressBar(true);
