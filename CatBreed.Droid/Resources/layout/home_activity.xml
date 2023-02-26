@@ -4,16 +4,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="10dp">
 
-    <SearchView
-        android:id="@+id/sv_search"
+    <RelativeLayout
+        android:id="@+id/rlt_search"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
-        android:layout_height="30dp"/>
+        android:layout_height="40dp">
+        <SearchView
+            android:id="@+id/sv_search"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_toLeftOf="@id/btn_clear"
+            android:layout_marginRight="10dp"
+            android:layout_centerVertical="true"/>
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:backgroundTint="@android:color/white"
+            android:text="Reset"
+            android:textColor="@android:color/black"
+            android:textAlignment="center"/>
+    </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcv_image"
-        android:layout_below="@id/sv_search"
+        android:layout_below="@id/rlt_search"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -69,6 +69,9 @@
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+      <PackageReference Include="Xamarin.FFImageLoading">
+        <Version>2.4.11.982</Version>
+      </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
@@ -116,10 +119,19 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Resources\" />
+        <Folder Include="Controllers\" />
+        <Folder Include="ListViews\" />
+        <Folder Include="ListViews\Cells\" />
+        <Folder Include="ListViews\Cells\CatImageTableCell\" />
+        <Folder Include="ListViews\DataSources\" />
+        <Folder Include="Services\" />
     </ItemGroup>
     <ItemGroup>
         <InterfaceDefinition Include="LaunchScreen.storyboard" />
         <InterfaceDefinition Include="Main.storyboard" />
+        <InterfaceDefinition Include="Controllers\BaseController.xib" />
+        <InterfaceDefinition Include="Controllers\HomeController.xib" />
+        <InterfaceDefinition Include="ListViews\Cells\CatImageTableCell\CatImageViewCell.xib" />
     </ItemGroup>
     <ItemGroup>
         <None Include="Info.plist" />
@@ -133,6 +145,50 @@
         <Compile Include="ViewController.designer.cs">
             <DependentUpon>ViewController.cs</DependentUpon>
         </Compile>
+        <Compile Include="Controllers\BaseController.cs" />
+        <Compile Include="Controllers\BaseController.designer.cs">
+          <DependentUpon>BaseController.cs</DependentUpon>
+        </Compile>
+        <Compile Include="Controllers\HomeController.cs" />
+        <Compile Include="Controllers\HomeController.designer.cs">
+          <DependentUpon>HomeController.cs</DependentUpon>
+        </Compile>
+        <Compile Include="ListViews\Cells\CatImageTableCell\CatImageViewCell.cs" />
+        <Compile Include="ListViews\Cells\CatImageTableCell\CatImageViewCell.designer.cs">
+          <DependentUpon>CatImageViewCell.cs</DependentUpon>
+        </Compile>
+        <Compile Include="ListViews\DataSources\CatImageViewSource.cs" />
+        <Compile Include="Services\IOSFileService.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj">
+        <Project>{9D2DB8D8-1615-4713-B233-279B9309A43F}</Project>
+        <Name>CatBreed.Entities</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Module\CatBreed.ApiClient\CatBreed.ApiClient.csproj">
+        <Project>{81B57949-C230-4041-AA65-AD487F4FC120}</Project>
+        <Name>CatBreed.ApiClient</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Core\CatBreed.Repositories\CatBreed.Repositories.csproj">
+        <Project>{7DB05A57-4F91-4158-8B20-518C203697C0}</Project>
+        <Name>CatBreed.Repositories</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Core\CatBreed.ServiceLocators\CatBreed.ServiceLocators.csproj">
+        <Project>{DFE68BD0-A111-4CF9-B513-5852472623B7}</Project>
+        <Name>CatBreed.ServiceLocators</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Core\CatBreed.Utilities\CatBreed.Utilities.csproj">
+        <Project>{63800386-2297-47EB-99DA-FA18EDE4FB4C}</Project>
+        <Name>CatBreed.Utilities</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Core\CatBreed.ApiLocators\CatBreed.ApiLocators.csproj">
+        <Project>{AA8D610E-BFD0-4611-8884-C351812F0804}</Project>
+        <Name>CatBreed.ApiLocators</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\CatBreed.Mobile\CatBreed.Mobile.csproj">
+        <Project>{02D691F1-DCE0-4078-A92C-291020FFF31E}</Project>
+        <Name>CatBreed.Mobile</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

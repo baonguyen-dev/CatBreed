@@ -69,6 +69,7 @@
     <Compile Include="Activities\HomeActivity.cs" />
     <Compile Include="Activities\BaseActivity.cs" />
     <Compile Include="Services\DroidDeviceService.cs" />
+    <Compile Include="BroadcastService\NetworkChangeReceiver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -118,6 +119,7 @@
     <Folder Include="Resources\drawable\" />
     <Folder Include="Activities\" />
     <Folder Include="Utils\" />
+    <Folder Include="BroadcastService\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xamarin.Android.Glide">
@@ -155,6 +157,10 @@
     <ProjectReference Include="..\CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj">
       <Project>{9D2DB8D8-1615-4713-B233-279B9309A43F}</Project>
       <Name>CatBreed.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CatBreed.Mobile\CatBreed.Mobile.csproj">
+      <Project>{02D691F1-DCE0-4078-A92C-291020FFF31E}</Project>
+      <Name>CatBreed.Mobile</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

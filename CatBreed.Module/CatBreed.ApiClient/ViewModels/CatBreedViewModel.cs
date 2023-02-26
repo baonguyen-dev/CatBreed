@@ -4,6 +4,12 @@ using CatBreed.Entities;
 
 namespace CatBreed.ApiClient.ViewModels
 {
+	public enum QueryType
+	{
+		BREED,
+		SAMPLE
+	}
+
 	public class CatBreedViewModel
 	{
 		public string Name { get; set; }
@@ -11,23 +17,27 @@ namespace CatBreed.ApiClient.ViewModels
 		public int Width { get; set; }
 		public int Height { get; set; }
 		public string Url { get; set; }
-	}
+		public QueryType QueryType { get;set;}
+		public string Id { get; set; }
+    }
 
 	public static class CatBreedViewModelEmm
 	{
-		public static CatBreedViewModel ToCatBreedViewModel(this CatBreedModel catBreedModel, ReferenceImage referenceImage)
+		public static CatBreedViewModel ToCatBreedViewModel(this CatBreedModel catBreedModel, ReferenceImage referenceImage, QueryType queryType = QueryType.BREED)
 		{
 			return new CatBreedViewModel()
 			{
+				Id = catBreedModel.Id,
 				Name = catBreedModel.Name,
 				ReferenceId = referenceImage.Id,
 				Width = referenceImage.Width,
 				Height = referenceImage.Height,
-				Url = referenceImage.Url
+				Url = referenceImage.Url,
+				QueryType = queryType
 			};
 		}
 
-		public static List<CatBreedViewModel> ToCatBreedViewModels(this List<CatEntity> entities)
+		public static List<CatBreedViewModel> ToCatBreedViewModels(this List<CatEntity> entities, QueryType queryType = QueryType.BREED)
         {
             var catBreedViewModels = new List<CatBreedViewModel>();
 
@@ -40,7 +50,8 @@ namespace CatBreed.ApiClient.ViewModels
 						Name = item.Name,
 						Width = item.Width,
 						Height = item.Height,
-						Url = item.Url
+						Url = item.Url,
+						QueryType = queryType
 					});
 				}
 
@@ -50,7 +61,7 @@ namespace CatBreed.ApiClient.ViewModels
 			return catBreedViewModels;
         }
 
-		public static List<CatBreedViewModel> ToCatBreedViewModels(this List<ReferenceImage> entities)
+		public static List<CatBreedViewModel> ToCatBreedViewModels(this List<ReferenceImage> entities, QueryType queryType = QueryType.BREED)
 		{
             var catBreedViewModels = new List<CatBreedViewModel>();
 
@@ -63,7 +74,8 @@ namespace CatBreed.ApiClient.ViewModels
                         Name = item.Id,
                         Width = item.Width,
                         Height = item.Height,
-                        Url = item.Url
+                        Url = item.Url,
+                        QueryType = queryType
                     });
                 }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rlv_parent"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="5dp">
@@ -7,7 +8,7 @@
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
-        android:layout_height="22dp"
+        android:layout_height="30dp"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#000" />
@@ -15,16 +16,17 @@
     <TextView
         android:id="@+id/tv_download"
         android:layout_width="wrap_content"
-        android:layout_height="22dp"
+        android:layout_height="30dp"
         android:textSize="20sp"
         android:textStyle="bold"
         android:text="Download Image"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorLinkInverse"
         android:layout_alignParentRight="true"/>
 
     <ImageView
         android:id="@+id/iv_image"
         android:layout_below="@id/tv_name"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
