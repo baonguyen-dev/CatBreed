@@ -70,6 +70,7 @@
     <Compile Include="Activities\BaseActivity.cs" />
     <Compile Include="Services\DroidDeviceService.cs" />
     <Compile Include="BroadcastService\NetworkChangeReceiver.cs" />
+    <Compile Include="Adapters\SearchListAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -111,6 +112,10 @@
       <Generator></Generator>
     </AndroidResource>
     <AndroidResource Include="Resources\layout\base_activity.xml">
+      <SubType></SubType>
+      <Generator></Generator>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\search_list_layout.xml">
       <SubType></SubType>
       <Generator></Generator>
     </AndroidResource>

@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -23,7 +24,10 @@ using CatBreed.Entities;
 using CatBreed.Repositories;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using Java.Util;
+using static System.Net.Mime.MediaTypeNames;
 using static Android.Content.ClipData;
+using static AndroidX.RecyclerView.Widget.RecyclerView;
 
 namespace CatBreed.Droid.Activities
 {
@@ -45,12 +49,22 @@ namespace CatBreed.Droid.Activities
         private List<CatEntity> _catEntities;
         private NetworkChangeReceiver _networkChangeReceiver;
         private Button _btnReset;
+        String[] _nameList;
+        List<string> _arraylist = new List<string>();
+        ListView _list;
+        SearchListAdapter _adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
-        {
+        {   
             base.OnCreate(savedInstanceState);
 
             SetContentView(Resource.Layout.home_activity);
+
+            _nameList = new String[]{"Lion", "Tiger", "Dog",
+                "Cat", "Tortoise", "Rat", "Elephant", "Fox",
+                "Cow","Donkey","Monkey"};
+
+            _list = FindViewById<ListView>(Resource.Id.listview);
 
             _svSearch = FindViewById<Android.Widget.SearchView>(Resource.Id.sv_search);
 
@@ -59,6 +73,18 @@ namespace CatBreed.Droid.Activities
             _pbWaiting = FindViewById<ProgressBar>(Resource.Id.progressBar_cyclic);
 
             _btnReset = FindViewById<Button>(Resource.Id.btn_clear);
+
+            for (int i = 0; i < _nameList.Length; i++)
+            {
+                // Binds all strings into an array
+                _arraylist.Add(_nameList[i]);
+            }
+
+            // Pass results to ListViewAdapter Class
+            var adapter = new SearchListAdapter(this, _arraylist);
+
+            // Binds the Adapter to the ListView
+            _list.SetAdapter(adapter);
 
             _btnReset.Click += (sender, args) =>
             {
@@ -236,9 +262,15 @@ namespace CatBreed.Droid.Activities
 
         public bool OnQueryTextChange(string newText)
         {
-            if (string.IsNullOrEmpty(newText))
+            if (!string.IsNullOrEmpty(newText))
             {
-                OnQueryTextSubmit(newText);
+                _adapter.Filter(newText);
+
+                _list.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                OnQueryTextSubmit(string.Empty);
             }
 
             return false;
