@@ -5,23 +5,26 @@ using System.Collections.Generic;
 using Android.Widget;
 using Android.Content;
 using System.Globalization;
+using CatBreed.ApiClient.ViewModels;
 
 namespace CatBreed.Droid.Adapters
 {
 	public class SearchListAdapter : BaseAdapter
 	{
-        Context mContext;
-        LayoutInflater inflater;
-        private List<string> animalNamesList = null;
-        private List<string> arraylist;
+        Context _context;
+        LayoutInflater _inflater;
+        private List<CatTypeViewModel> _arraylist;
+        private List<CatTypeViewModel> _items;
+        private Action<CatTypeViewModel> _onItemClicked;
 
-        public SearchListAdapter(Context context, List<string> animalNamesList)
+        public SearchListAdapter(Context context, List<CatTypeViewModel> items, Action<CatTypeViewModel> onItemClicked)
         {
-            mContext = context;
-            this.animalNamesList = animalNamesList;
-            inflater = LayoutInflater.From(mContext);
-            this.arraylist = new List<string>();
-            this.arraylist.AddRange(animalNamesList);
+            _context = context;
+            _items = items;
+            _inflater = LayoutInflater.From(_context);
+            _arraylist = new List<CatTypeViewModel>();
+            _arraylist.AddRange(_items);
+            _onItemClicked = onItemClicked;
         }
 
         public class ViewHolder: Java.Lang.Object
@@ -29,11 +32,11 @@ namespace CatBreed.Droid.Adapters
             public TextView Name { get; set; }
         }
 
-        public override int Count => animalNamesList.Count;
+        public override int Count => _items != null ? _items.Count : 0;
 
         public override Java.Lang.Object GetItem(int position)
         {
-            return animalNamesList[position];
+            return null;
         }
 
         public override long GetItemId(int position)
@@ -43,11 +46,12 @@ namespace CatBreed.Droid.Adapters
 
         public override View GetView(int position, View view, ViewGroup parent)
         {
-           ViewHolder holder;
+            ViewHolder holder;
+
             if (view == null)
             {
                 holder = new ViewHolder();
-                view = inflater.Inflate(Resource.Layout.search_list_layout, null);
+                view = _inflater.Inflate(Resource.Layout.search_list_layout, null);
                 // Locate the TextViews in listview_item.xml
                 holder.Name = (TextView)view.FindViewById(Resource.Id.name);
                 view.Tag = holder;
@@ -57,7 +61,13 @@ namespace CatBreed.Droid.Adapters
                 holder = (ViewHolder)view.Tag;
             }
             // Set the results into TextViews
-            holder.Name.Text = animalNamesList[position];
+            holder.Name.Text = _items[position].Name;
+
+            holder.Name.Click += (sender, args) =>
+            {
+                _onItemClicked?.Invoke(_items[position - 1]);
+            };
+
             return view;
         }
 
@@ -65,21 +75,22 @@ namespace CatBreed.Droid.Adapters
         public void Filter(String charText)
         {
             charText = charText.ToLower();
-            animalNamesList.Clear();
+            _items.Clear();
             if (charText.Length == 0)
             {
-                animalNamesList.AddRange(arraylist);
+                _items.AddRange(_arraylist);
             }
             else
             {
-                foreach (var item in arraylist)
+                foreach (var item in _arraylist)
                 {
-                    if (item.ToLower().Contains(charText))
+                    if (item.Name.ToLower().Contains(charText))
                     {
-                        animalNamesList.Add(item);
+                        _items.Add(item);
                     }
                 }
             }
+
             NotifyDataSetChanged();
         }
     }

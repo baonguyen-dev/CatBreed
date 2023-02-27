@@ -27,6 +27,7 @@ using CatBreed.ServiceLocators.Services;
 using Java.Util;
 using static System.Net.Mime.MediaTypeNames;
 using static Android.Content.ClipData;
+using static Android.Graphics.ColorSpace;
 using static AndroidX.RecyclerView.Widget.RecyclerView;
 
 namespace CatBreed.Droid.Activities
@@ -43,16 +44,16 @@ namespace CatBreed.Droid.Activities
         private Android.Widget.SearchView _svSearch;
         private ListViewAdapter _listViewAdapter;
         private string _queryBreed;
-        private List<CatBreedModel> _catBreedModels;
         private ProgressBar _pbWaiting;
         private CatBreedRepository _catBreedRepository;
         private List<CatEntity> _catEntities;
         private NetworkChangeReceiver _networkChangeReceiver;
         private Button _btnReset;
-        String[] _nameList;
-        List<string> _arraylist = new List<string>();
         ListView _list;
         SearchListAdapter _adapter;
+        private List<CatTypeEntity> _typeEntities;
+        private CatTypeRepository _catTypeRepository;
+        private List<CatTypeViewModel> _catTypesViewModel;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {   
@@ -60,9 +61,9 @@ namespace CatBreed.Droid.Activities
 
             SetContentView(Resource.Layout.home_activity);
 
-            _nameList = new String[]{"Lion", "Tiger", "Dog",
-                "Cat", "Tortoise", "Rat", "Elephant", "Fox",
-                "Cow","Donkey","Monkey"};
+            _catTypeRepository = new CatTypeRepository();
+
+            _typeEntities = _catTypeRepository.LoadAll().ToList();
 
             _list = FindViewById<ListView>(Resource.Id.listview);
 
@@ -74,21 +75,70 @@ namespace CatBreed.Droid.Activities
 
             _btnReset = FindViewById<Button>(Resource.Id.btn_clear);
 
-            for (int i = 0; i < _nameList.Length; i++)
+            if (_typeEntities == null || _typeEntities.Count == 0)
             {
-                // Binds all strings into an array
-                _arraylist.Add(_nameList[i]);
+                ShowProgressBar(true);
+
+                Task.Factory.StartNew(async () =>
+                {
+                    var allBread = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
+
+                    foreach (var item in allBread)
+                    {
+                        _typeEntities.Add(new CatTypeEntity()
+                        {
+                            Name = item.Name,
+                            Type = item.Id
+                        });
+                    }
+
+                    _catTypeRepository.InsertAll(_typeEntities);
+
+                    ShowProgressBar(false);
+                });
             }
 
-            // Pass results to ListViewAdapter Class
-            var adapter = new SearchListAdapter(this, _arraylist);
+            _catTypesViewModel = new List<CatTypeViewModel>();
 
-            // Binds the Adapter to the ListView
-            _list.SetAdapter(adapter);
+            _catTypesViewModel.AddRange(_typeEntities.ToCatBreedViewModels());
+
+            _adapter = new SearchListAdapter(this, _catTypesViewModel, (model) =>
+            {
+                ShowProgressBar(true);
+
+                if (_deviceService.IsDeviceOnline())
+                {
+                    QueryBreedData();
+                }
+                else
+                {
+                    var tempCatEntities = _catEntities.Where(p => p.Name.ToLower().Contains(_queryBreed.ToLower())).ToList();
+
+                    var tempCatBreedViewModels = tempCatEntities.ToCatBreedViewModels();
+
+                    _catBreedViewModels.Clear();
+
+                    _catBreedViewModels.AddRange(tempCatBreedViewModels);
+
+                    _listViewAdapter.NotifyDataSetChanged();
+
+                    ShowProgressBar(false);
+                }
+            });
+
+            _list.Adapter = _adapter;
 
             _btnReset.Click += (sender, args) =>
             {
-                _svSearch.SetQuery("", true);
+                ShowProgressBar(true);
+
+                _svSearch.SetQuery("", false);
+
+                _svSearch.ClearFocus();
+
+                _queryBreed = "";
+
+                QueryBreedData();
             };
 
             _networkChangeReceiver = new NetworkChangeReceiver((isOnline) =>
@@ -109,7 +159,7 @@ namespace CatBreed.Droid.Activities
                     }
                     else
                     {
-                        var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
+                        var tempCatBreedModels = await _catBreedClient.GetCatBreed(10) as List<CatBreedModel>;
 
                         foreach (var item in tempCatBreedModels)
                         {
@@ -144,7 +194,11 @@ namespace CatBreed.Droid.Activities
             {
                 if (!string.IsNullOrEmpty(data.Id))
                 {
-                    _svSearch.SetQuery(data.Id, true);
+                    ShowProgressBar(true);
+
+                    _queryBreed = data.Id;
+
+                    QueryBreedData();
                 }
             }, (data) =>
             {
@@ -262,44 +316,25 @@ namespace CatBreed.Droid.Activities
 
         public bool OnQueryTextChange(string newText)
         {
-            if (!string.IsNullOrEmpty(newText))
-            {
-                _adapter.Filter(newText);
-
-                _list.Visibility = ViewStates.Visible;
-            }
-            else
-            {
-                OnQueryTextSubmit(string.Empty);
-            }
-
             return false;
         }
 
         public bool OnQueryTextSubmit(string query)
         {
-            _queryBreed = query;
-
-            ShowProgressBar(true);
-
-            if (_deviceService.IsDeviceOnline())
+            if (!string.IsNullOrEmpty(query))
             {
-                QueryBreedData();
+                _adapter.Filter(query);
+
+                _list.BringToFront();
+
+                _list.Visibility = ViewStates.Visible;
             }
             else
             {
-                var tempCatEntities = _catEntities.Where(p => p.Name.ToLower().Contains(_queryBreed.ToLower())).ToList();
-
-                var tempCatBreedViewModels = tempCatEntities.ToCatBreedViewModels();
-
-                _catBreedViewModels.Clear();
-
-                _catBreedViewModels.AddRange(tempCatBreedViewModels);
-
-                _listViewAdapter.NotifyDataSetChanged();
-
-                ShowProgressBar(false);
+                _list.Visibility = ViewStates.Invisible;
             }
+
+            _queryBreed = query;
 
             return false;
         }
