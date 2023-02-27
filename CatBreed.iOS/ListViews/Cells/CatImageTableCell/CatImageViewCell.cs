@@ -13,6 +13,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 	public partial class CatImageViewCell : UITableViewCell
 	{
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
+        private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
 
         public static readonly NSString Key = new NSString ("CatImageViewCell");
 		public static readonly UINib Nib;
@@ -73,7 +74,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                 TvDownload.Hidden = false;
             }
 
-            if (true)
+            if (!_deviceSerivce.IsDeviceOnline())
             {
                 Task.Factory.StartNew(async () =>
                 {

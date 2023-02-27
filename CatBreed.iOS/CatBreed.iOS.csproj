@@ -159,6 +159,8 @@
         </Compile>
         <Compile Include="ListViews\DataSources\CatImageViewSource.cs" />
         <Compile Include="Services\IOSFileService.cs" />
+        <Compile Include="Services\ReachabilityService.cs" />
+        <Compile Include="Services\IOSDeviceService.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj">

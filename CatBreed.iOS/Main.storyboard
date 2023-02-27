@@ -21,24 +21,35 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="r3m-Mo-jdp">
-                                <rect key="frame" x="10" y="159" width="394" height="693"/>
+                                <rect key="frame" x="10" y="149" width="394" height="703"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="4BZ-kA-DWs">
                                 <rect key="frame" x="197" y="438" width="20" height="20"/>
                             </activityIndicatorView>
-                            <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="sea-bS-xlf">
-                                <rect key="frame" x="10" y="98" width="394" height="51"/>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M21-3Q-inw">
+                                <rect key="frame" x="304" y="98" width="100" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="A3y-94-Jqv"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="RESET"/>
+                            </button>
+                            <searchBar contentMode="redraw" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sea-bS-xlf">
+                                <rect key="frame" x="10" y="88" width="284" height="51"/>
                                 <textInputTraits key="textInputTraits"/>
                             </searchBar>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="sea-bS-xlf" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="10" id="0zL-Pt-PdX"/>
-                            <constraint firstAttribute="trailing" secondItem="sea-bS-xlf" secondAttribute="trailing" constant="10" id="4Zh-Cq-0Hh"/>
+                            <constraint firstItem="sea-bS-xlf" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="0zL-Pt-PdX"/>
+                            <constraint firstAttribute="trailing" secondItem="M21-3Q-inw" secondAttribute="trailing" constant="10" id="92W-B9-2Gh"/>
+                            <constraint firstItem="M21-3Q-inw" firstAttribute="leading" secondItem="sea-bS-xlf" secondAttribute="trailing" constant="10" id="CEi-zN-JGB"/>
                             <constraint firstItem="sea-bS-xlf" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="J9n-Hq-I3p"/>
+                            <constraint firstItem="M21-3Q-inw" firstAttribute="centerY" secondItem="sea-bS-xlf" secondAttribute="centerY" id="JHr-Ci-3NT"/>
                             <constraint firstItem="4BZ-kA-DWs" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="RlK-hj-0rk"/>
                             <constraint firstItem="r3m-Mo-jdp" firstAttribute="top" secondItem="sea-bS-xlf" secondAttribute="bottom" constant="10" id="VoD-P3-lu3"/>
+                            <constraint firstItem="M21-3Q-inw" firstAttribute="height" secondItem="sea-bS-xlf" secondAttribute="height" multiplier="0.607843" id="Y2F-JG-Iju"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="r3m-Mo-jdp" secondAttribute="bottom" constant="10" id="ay0-GT-7Du"/>
                             <constraint firstAttribute="trailing" secondItem="r3m-Mo-jdp" secondAttribute="trailing" constant="10" id="jJk-j5-QPt"/>
                             <constraint firstItem="r3m-Mo-jdp" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="nfV-nQ-KbH"/>
@@ -48,6 +59,7 @@
                     <navigationItem key="navigationItem" id="Iad-Wm-c1K"/>
                     <connections>
                         <outlet property="activityIndicator" destination="4BZ-kA-DWs" id="PDJ-tL-xdx"/>
+                        <outlet property="resetButton" destination="M21-3Q-inw" id="TIF-Z1-G3R"/>
                         <outlet property="searchBar" destination="sea-bS-xlf" id="jyc-P4-esr"/>
                         <outlet property="tableView" destination="r3m-Mo-jdp" id="XZW-eY-Xa4"/>
                     </connections>

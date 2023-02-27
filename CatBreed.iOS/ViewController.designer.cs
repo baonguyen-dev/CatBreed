@@ -16,6 +16,9 @@ namespace CatBreed.iOS
 		UIKit.UIActivityIndicatorView activityIndicator { get; set; }
 
 		[Outlet]
+		UIKit.UIButton resetButton { get; set; }
+
+		[Outlet]
 		UIKit.UISearchBar searchBar { get; set; }
 
 		[Outlet]
@@ -23,6 +26,11 @@ namespace CatBreed.iOS
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (activityIndicator != null) {
+				activityIndicator.Dispose ();
+				activityIndicator = null;
+			}
+
 			if (searchBar != null) {
 				searchBar.Dispose ();
 				searchBar = null;
@@ -33,9 +41,9 @@ namespace CatBreed.iOS
 				tableView = null;
 			}
 
-			if (activityIndicator != null) {
-				activityIndicator.Dispose ();
-				activityIndicator = null;
+			if (resetButton != null) {
+				resetButton.Dispose ();
+				resetButton = null;
 			}
 		}
 	}

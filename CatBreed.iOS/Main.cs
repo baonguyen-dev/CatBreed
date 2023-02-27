@@ -25,6 +25,7 @@ namespace CatBreed.iOS
         {
             ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>(new Uri(BASE_URL), string.Empty);
             ServiceLocator.Instance.Register<IFileService, IOSFileService>();
+            ServiceLocator.Instance.Register<IDeviceService, IOSDeviceService>();
         }
     }
 }

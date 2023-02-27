@@ -178,32 +178,48 @@ namespace CatBreed.Droid.Activities
 
                 if (_deviceService.IsDeviceOnline())
                 {
-                    if (!string.IsNullOrEmpty(_queryBreed))
+                    try
                     {
-                        var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, _listViewAdapter.ItemCount + 10) as List<ReferenceImage>;
-
-                        if (tempReferenceModels.Count > 10)
+                        if (!string.IsNullOrEmpty(_queryBreed))
                         {
-                            tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
-                        }
+                            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, _listViewAdapter.ItemCount + 10) as List<ReferenceImage>;
 
-                        _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
+                            if (tempReferenceModels.Count > 10)
+                            {
+                                tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
+                            }
+
+                            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
+                        }
+                        else
+                        {
+                            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_listViewAdapter.ItemCount + 10) as List<CatBreedModel>;
+
+                            if (tempCatBreedModels.Count > 10)
+                            {
+                                tempCatBreedModels = tempCatBreedModels.GetRange(tempCatBreedModels.Count - 10, 10);
+                            }
+
+                            foreach (var item in tempCatBreedModels)
+                            {
+                                var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
+
+                                _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
+                            }
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        var tempCatBreedModels = await _catBreedClient.GetCatBreed(_listViewAdapter.ItemCount + 10) as List<CatBreedModel>;
-
-                        if (tempCatBreedModels.Count > 10)
+                        RunOnUiThread(() =>
                         {
-                            tempCatBreedModels = tempCatBreedModels.GetRange(tempCatBreedModels.Count - 10, 10);
-                        }
+                            ShowProgressBar(false);
 
-                        foreach (var item in tempCatBreedModels)
-                        {
-                            var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                            _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
-                        }
+                            AlertDialog alert = new AlertDialog.Builder(this)
+                                                    .SetTitle("Error")
+                                                    .SetMessage("To many request!")
+                                                    .SetPositiveButton(text: "OK", handler: null)
+                                                    .Show();
+                        });
                     }
 
                     if (_listViewAdapter.ItemCount > 10)
