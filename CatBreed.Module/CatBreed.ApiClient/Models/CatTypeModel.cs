@@ -3,35 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CatBreed.ApiClient.ViewModels
+namespace CatBreed.ApiClient.Models
 {
-    public class CatTypeViewModel
+    public class CatTypeModel
     {
         public string Name { get; set; }
 
         public string Type { get; set; }
     }
 
-    public static class CatTypeViewModelEmm
+    public static class CatTypeModelEmm
     {
-        public static CatTypeViewModel ToCatTypeViewModel(this CatTypeEntity catBreedModel)
+        public static CatTypeModel ToCatTypeViewModel(this CatTypeEntity catBreedModel)
         {
-            return new CatTypeViewModel()
+            return new CatTypeModel()
             {
                 Type = catBreedModel.Type,
                 Name = catBreedModel.Name
             };
         }
 
-        public static List<CatTypeViewModel> ToCatBreedViewModels(this List<CatTypeEntity> entities)
+        public static List<CatTypeModel> ToCatBreedViewModels(this List<CatTypeEntity> entities)
         {
-            var catTypeViewModels = new List<CatTypeViewModel>();
+            var catTypeViewModels = new List<CatTypeModel>();
 
             if (entities != null)
             {
                 foreach (var item in entities)
                 {
-                    catTypeViewModels.Add(new CatTypeViewModel()
+                    catTypeViewModels.Add(new CatTypeModel()
                     {
                         Name = item.Name,
                         Type = item.Type,

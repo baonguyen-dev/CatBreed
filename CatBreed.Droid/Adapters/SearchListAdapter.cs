@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Android.Widget;
 using Android.Content;
 using System.Globalization;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 
 namespace CatBreed.Droid.Adapters
 {
@@ -13,17 +13,17 @@ namespace CatBreed.Droid.Adapters
 	{
         Context _context;
         LayoutInflater _inflater;
-        private List<CatTypeViewModel> _arraylist;
-        private List<CatTypeViewModel> _items;
-        private Action<CatTypeViewModel> _onItemClicked;
+        private List<CatTypeModel> _arraylist;
+        private List<CatTypeModel> _items;
+        private Action<CatTypeModel> _onItemClicked;
 
-        public SearchListAdapter(Context context, List<CatTypeViewModel> items, Action<CatTypeViewModel> onItemClicked)
+        public SearchListAdapter(Context context, List<CatTypeModel> items, Action<CatTypeModel> onItemClicked)
         {
             _context = context;
             _items = items;
-            _inflater = LayoutInflater.From(_context);
-            _arraylist = new List<CatTypeViewModel>();
+            _arraylist = new List<CatTypeModel>();
             _arraylist.AddRange(_items);
+            _inflater = LayoutInflater.From(_context);
             _onItemClicked = onItemClicked;
         }
 
@@ -65,10 +65,17 @@ namespace CatBreed.Droid.Adapters
 
             holder.Name.Click += (sender, args) =>
             {
-                _onItemClicked?.Invoke(_items[position - 1]);
+                _onItemClicked?.Invoke(_items[position]);
             };
 
             return view;
+        }
+
+        public void SetListItem(List<CatTypeModel> items)
+        {
+            _items = items;
+            _arraylist = new List<CatTypeModel>();
+            _arraylist.AddRange(_items);
         }
 
         // Filter Class

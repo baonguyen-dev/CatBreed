@@ -11,7 +11,7 @@ using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using CatBreed.ApiClient;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
 using Java.Lang;
@@ -32,15 +32,27 @@ namespace CatBreed.Droid.Adapters
             _onScrolledToEnd = onScrolledToEnd;
         }
 
-        public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
+        public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
         {
-            base.OnScrollStateChanged(recyclerView, newState);
-
-            if (!recyclerView.CanScrollVertically(1))
+            if (!recyclerView.CanScrollVertically(1) && dy > 0)
             {
                 _onScrolledToEnd?.Invoke();
             }
+            else if (!recyclerView.CanScrollVertically(-1) && dy < 0)
+            {
+                //scrolled to TOP
+            }
         }
+
+        //public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
+        //{
+        //    base.OnScrollStateChanged(recyclerView, newState);
+
+        //    if (!recyclerView.CanScrollVertically(1) && newState == RecyclerView.ScrollStateIdle)
+        //    {
+        //        _onScrolledToEnd?.Invoke();
+        //    }
+        //}
     }
 
     public class ListViewAdapter : RecyclerView.Adapter
@@ -48,14 +60,15 @@ namespace CatBreed.Droid.Adapters
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
 
-        List<CatBreedViewModel> _items;
+        List<ApiClient.Models.CatBreedModel> _items;
         Context _context;
-        Action<CatBreedViewModel> _onDownloadClicked;
-        Action<CatBreedViewModel> _onBreedClicked;
+        Action<ApiClient.Models.CatBreedModel> _onDownloadClicked;
+        Action<ApiClient.Models.CatBreedModel> _onBreedClicked;
+        int _width = 0;
 
         public override int ItemCount => _items == null ? 0 : _items.Count;
 
-        public ListViewAdapter(Context context, List<CatBreedViewModel> items, Action<CatBreedViewModel> onBreedClicked, Action<CatBreedViewModel> onDownloadClicked)
+        public ListViewAdapter(Context context, List<ApiClient.Models.CatBreedModel> items, Action<ApiClient.Models.CatBreedModel> onBreedClicked, Action<ApiClient.Models.CatBreedModel> onDownloadClicked)
         {
             _context = context;
 
@@ -64,6 +77,8 @@ namespace CatBreed.Droid.Adapters
             _onBreedClicked = onBreedClicked;
 
             _onDownloadClicked = onDownloadClicked;
+
+            _width = _deviceSerivce.GetScreenWidth();
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -74,6 +89,12 @@ namespace CatBreed.Droid.Adapters
 
             if (_items[position] != null)
             {
+                var ratio = (double)_width / _items[position].Width;
+
+                _items[position].Width = _width;
+
+                _items[position].Height = (int)(_items[position].Height * ratio);
+
                 vh.TvDownload.Visibility = _items[position].QueryType == QueryType.SAMPLE ? ViewStates.Visible : ViewStates.Invisible;
 
                 vh.TvName.Text = _items[position].Name;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Contexts;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 using CatBreed.iOS.ListViews.Cells.CatImageTableCell;
 using Foundation;
 using UIKit;
@@ -10,14 +10,14 @@ namespace CatBreed.iOS.ListViews.DataSources
 {
 	public class CatImageViewSource : UITableViewSource
     {
-        List<CatBreedViewModel> _items;
+        List<CatBreedModel> _items;
         Context _context;
-        Action<CatBreedViewModel> _onDownloadClicked;
-        Action<CatBreedViewModel> _onBreedClicked;
+        Action<CatBreedModel> _onDownloadClicked;
+        Action<CatBreedModel> _onBreedClicked;
         Action _onScrolledToEnd;
         bool _isOnline;
 
-        public CatImageViewSource(List<CatBreedViewModel> items, Action<CatBreedViewModel> onBreedClicked, Action<CatBreedViewModel> onDownloadClicked, bool isOnline = true)
+        public CatImageViewSource(List<CatBreedModel> items, Action<CatBreedModel> onBreedClicked, Action<CatBreedModel> onDownloadClicked, bool isOnline = true)
 		{
             _items = items;
 

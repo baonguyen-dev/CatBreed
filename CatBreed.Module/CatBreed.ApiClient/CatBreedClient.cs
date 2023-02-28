@@ -24,7 +24,7 @@ namespace CatBreed.ApiClient
         {
         }
 
-        public async Task<IList<CatBreedModel>> GetCatBreed(int limit = 0)
+        public async Task<IList<TheCatModel>> GetCatBreed(int limit = 0)
         {
             var requestBuilder = new HttpRequesMessageBuilder()
                .SetBaseUrl(BaseUrl.ToString())
@@ -39,10 +39,10 @@ namespace CatBreed.ApiClient
 
             var request = requestBuilder.Build();
 
-            return await SendRequest<IList<CatBreedModel>>(request);
+            return await SendRequest<IList<TheCatModel>>(request);
         }
 
-        public async Task<IList<ReferenceImage>> GetCatBreedIds(string id, int limit = 10)
+        public async Task<IList<ReferenceImage>> GetCatBreedIds(string id, int limit = 20)
         {
             var request = new HttpRequesMessageBuilder()
                .SetBaseUrl(BaseUrl.ToString())

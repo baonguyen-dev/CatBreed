@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
 using CoreGraphics;

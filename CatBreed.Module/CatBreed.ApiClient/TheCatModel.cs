@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace CatBreed.ApiClient
 {
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public class CatBreedModel
+    public class TheCatModel
     {
         [JsonProperty("weight")]
         public Weight Weight { get; set; }
@@ -123,7 +123,7 @@ namespace CatBreed.ApiClient
         [JsonProperty("bidability")]
         public int? Bidability { get; set; }
 
-        public CatBreedModel()
+        public TheCatModel()
         {
         }
     }

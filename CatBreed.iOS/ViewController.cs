@@ -1,5 +1,5 @@
 ﻿using CatBreed.ApiClient;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 using CatBreed.Entities;
 using CatBreed.iOS.Controllers;
 using CatBreed.iOS.ListViews.Cells.CatImageTableCell;
@@ -24,9 +24,9 @@ namespace CatBreed.iOS
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
 
-        private List<CatBreedViewModel> _catBreedViewModels;
+        private List<ApiClient.Models.CatBreedModel> _catBreedViewModels;
         private string _queryBreed;
-        private List<CatBreedModel> _catBreedModels;
+        private List<ApiClient.TheCatModel> _catBreedModels;
         private List<CatEntity> _catEntities;
         private CatBreedRepository _catBreedRepository;
         private ReachabilityService _internetReachability;
@@ -49,7 +49,7 @@ namespace CatBreed.iOS
 
             const string remoteHostName = "www.google.com";
 
-            _catBreedViewModels = new List<CatBreedViewModel>();
+            _catBreedViewModels = new List<ApiClient.Models.CatBreedModel>();
 
             _catBreedRepository = new CatBreedRepository();
 
@@ -133,20 +133,20 @@ namespace CatBreed.iOS
                     {
                         if (!string.IsNullOrEmpty(_queryBreed))
                         {
-                            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed,  10) as List<ReferenceImage>;
+                            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, 10) as List<ReferenceImage>;
 
                             if (tempReferenceModels.Count > 10)
                             {
                                 tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
                             }
 
-                            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
+                            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedModels(QueryType.SAMPLE));
 
                             ShowProgressBar(false);
                         }
                         else
                         {
-                            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_catBreedViewModels.Count + 10) as List<CatBreedModel>;
+                            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_catBreedViewModels.Count + 10) as List<ApiClient.TheCatModel>;
 
                             if (tempCatBreedModels.Count > 10)
                             {
@@ -157,7 +157,7 @@ namespace CatBreed.iOS
                             {
                                 var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
 
-                                _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
+                                _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
                             }
 
                             ShowProgressBar(false);
@@ -224,7 +224,7 @@ namespace CatBreed.iOS
             {
                 var tempCatEntities = _catEntities.Where(p => p.Name.ToLower().Contains(_queryBreed.ToLower())).ToList();
 
-                var tempCatBreedViewModels = tempCatEntities.ToCatBreedViewModels();
+                var tempCatBreedViewModels = tempCatEntities.ToCatBreedModels();
 
                 _catBreedViewModels.Clear();
 
@@ -277,19 +277,19 @@ namespace CatBreed.iOS
                 {
                     _catEntities = _catBreedRepository.LoadAll().ToList();
 
-                    var tempCatBreedViewModels = _catEntities.ToCatBreedViewModels();
+                    var tempCatBreedViewModels = _catEntities.ToCatBreedModels();
 
                     _catBreedViewModels.AddRange(tempCatBreedViewModels);
                 }
                 else
                 {
-                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
+                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
 
                     foreach (var item in tempCatBreedModels)
                     {
                         var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
 
-                        _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
+                        _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
                     }
                 }
 
@@ -314,7 +314,7 @@ namespace CatBreed.iOS
 
                         _catBreedViewModels.Clear();
 
-                        _catBreedViewModels.AddRange(referenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
+                        _catBreedViewModels.AddRange(referenceModels.ToCatBreedModels(QueryType.SAMPLE));
                     }
                     catch (Exception sie)
                     {
@@ -330,7 +330,7 @@ namespace CatBreed.iOS
                 }
                 else
                 {
-                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
+                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
 
                     _catBreedViewModels.Clear();
 
@@ -338,7 +338,7 @@ namespace CatBreed.iOS
                     {
                         var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
 
-                        _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage, QueryType.BREED));
+                        _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage, QueryType.BREED));
                     }
                 }
 
