@@ -21,6 +21,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 		private Action<int> _onDownloadClicked;
         private Action<int> _onBreedClicked;
 		private int _position;
+        private int _width;
+        private UITableView _tableView;
 
 		static CatImageViewCell ()
 		{
@@ -35,6 +37,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
         public override void AwakeFromNib()
         {
             base.AwakeFromNib();
+
+            _width = _deviceSerivce.GetScreenWidth();
 
             this.AddGestureRecognizer(new UITapGestureRecognizer(() =>
             {
@@ -59,13 +63,21 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 			_onDownloadClicked = onDownloadClicked;
 		}
 
-		public void UpdateData(int position, string name, string url, QueryType queryType)
+		public void UpdateData(UITableView tableView, int position, CatBreedModel item)
 		{
-			_position = position;
+            _tableView = tableView;
 
-			TvName.Text = name;
+            _position = position;
 
-            if (queryType == QueryType.BREED)
+            var ratio = (double)_width / item.Width;
+
+            item.Width = _width;
+
+            item.Height = (int)(item.Height * ratio);
+
+            TvName.Text = item.Name;
+
+            if (item.QueryType == QueryType.BREED)
             {
                 TvDownload.Hidden = true;
             }
@@ -79,7 +91,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                 Task.Factory.StartNew(async () =>
                 {
                     await ImageService.Instance
-                       .LoadFile(_fileService.ReconstructImagePath(url))
+                       .LoadFile(_fileService.ReconstructImagePath(item.Url))
+                       .WithCache(FFImageLoading.Cache.CacheType.Memory)
                        .AsUIImageAsync().ContinueWith(res =>
                        {
                            this.InvokeOnMainThread(() =>
@@ -87,7 +100,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result);
+                                   SetImage(res.Result, item.Width, item.Height);
                                }
                            });
                        });
@@ -98,7 +111,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                 Task.Factory.StartNew(async () =>
                 {
                     await ImageService.Instance
-                       .LoadUrl(url)
+                       .LoadUrl(item.Url)
+                       .WithCache(FFImageLoading.Cache.CacheType.Memory)
                        .AsUIImageAsync().ContinueWith(res =>
                        {
                            this.InvokeOnMainThread(() =>
@@ -106,7 +120,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result);
+                                   SetImage(res.Result, item.Width, item.Height);
                                }
                            });
                        });
@@ -115,15 +129,22 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 
         }
 
-        public void SetImage(UIImage image)
+        public void SetImage(UIImage image, int width, int height)
         {
-            IvImage.Frame = new CGRect(0, 0, this.Frame.Width, this.Frame.Height);
+            _tableView.BeginUpdates();
+
+            IvImage.Frame = new CGRect(0, 0, width, height);
+
             IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
 
             this.Hidden = false;
 
             if (image != null)
+            {
                 IvImage.Image = image;
+            }
+
+            _tableView.EndUpdates();
         }
     }
 }

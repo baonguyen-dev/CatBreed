@@ -125,6 +125,7 @@
         <Folder Include="ListViews\Cells\CatImageTableCell\" />
         <Folder Include="ListViews\DataSources\" />
         <Folder Include="Services\" />
+        <Folder Include="ListViews\Cells\SearchTableView\" />
     </ItemGroup>
     <ItemGroup>
         <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -132,6 +133,7 @@
         <InterfaceDefinition Include="Controllers\BaseController.xib" />
         <InterfaceDefinition Include="Controllers\HomeController.xib" />
         <InterfaceDefinition Include="ListViews\Cells\CatImageTableCell\CatImageViewCell.xib" />
+        <InterfaceDefinition Include="ListViews\Cells\SearchTableView\SearchTableViewCell.xib" />
     </ItemGroup>
     <ItemGroup>
         <None Include="Info.plist" />
@@ -161,6 +163,11 @@
         <Compile Include="Services\IOSFileService.cs" />
         <Compile Include="Services\ReachabilityService.cs" />
         <Compile Include="Services\IOSDeviceService.cs" />
+        <Compile Include="ListViews\Cells\SearchTableView\SearchTableViewCell.cs" />
+        <Compile Include="ListViews\Cells\SearchTableView\SearchTableViewCell.designer.cs">
+          <DependentUpon>SearchTableViewCell.cs</DependentUpon>
+        </Compile>
+        <Compile Include="ListViews\DataSources\SearchViewSource.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj">

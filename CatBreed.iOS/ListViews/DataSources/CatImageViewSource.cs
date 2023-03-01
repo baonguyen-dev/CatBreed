@@ -45,16 +45,14 @@ namespace CatBreed.iOS.ListViews.DataSources
                 _onDownloadClicked?.Invoke(_items[position]);
             });
 
-            cell.UpdateData(indexPath.Row, _items[indexPath.Row].Name, _items[indexPath.Row].Url, _items[indexPath.Row].QueryType);
+            cell.UpdateData(tableView, indexPath.Row, _items[indexPath.Row]);
 
             return cell;
         }
 
-        public override void Scrolled(UIScrollView scrollView)
+        public override void WillDisplay(UITableView tableView, UITableViewCell cell, NSIndexPath indexPath)
         {
-            var offsetY = scrollView.ContentOffset.Y;
-            var contentHeight = scrollView.ContentSize.Height;
-            if (offsetY > contentHeight - scrollView.Frame.Height)
+            if (indexPath.Row == _items.Count - 1)
             {
                 _onScrolledToEnd.Invoke();
             }
