@@ -259,7 +259,7 @@ namespace CatBreed.iOS
                 if (!string.IsNullOrEmpty(searchText))
                 {
                     _searchViewSource.Filter(searchText);
-
+           
                     this.View.BringSubviewToFront(searchTableView);
 
                     searchTableView.Hidden = false;
@@ -272,7 +272,7 @@ namespace CatBreed.iOS
             else
             {
                 _catBreedViewModels.Clear();
-
+                
                 _catBreedViewModels.AddRange(_viewModel.QueryCatBreedFromDatabase(searchText));
 
                 tableView.ReloadData();

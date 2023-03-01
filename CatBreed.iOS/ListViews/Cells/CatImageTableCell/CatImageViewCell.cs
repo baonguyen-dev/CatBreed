@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CatBreed.ApiClient;
 using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using CoreFoundation;
 using CoreGraphics;
 using FFImageLoading;
 using Foundation;
@@ -23,6 +26,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 		private int _position;
         private int _width;
         private UITableView _tableView;
+        private Dictionary<int, float> _rowHeights;
 
 		static CatImageViewCell ()
 		{
@@ -37,8 +41,6 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
         public override void AwakeFromNib()
         {
             base.AwakeFromNib();
-
-            _width = _deviceSerivce.GetScreenWidth();
 
             this.AddGestureRecognizer(new UITapGestureRecognizer(() =>
             {
@@ -63,17 +65,13 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 			_onDownloadClicked = onDownloadClicked;
 		}
 
-		public void UpdateData(UITableView tableView, int position, CatBreedModel item)
+		public void UpdateData(UITableView tableView, int position, CatBreedModel item, Dictionary<int, float> rowHeights)
 		{
+            _rowHeights = rowHeights;
+
             _tableView = tableView;
 
             _position = position;
-
-            var ratio = (double)_width / item.Width;
-
-            item.Width = _width;
-
-            item.Height = (int)(item.Height * ratio);
 
             TvName.Text = item.Name;
 
@@ -131,20 +129,20 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 
         public void SetImage(UIImage image, int width, int height)
         {
-            _tableView.BeginUpdates();
+            //DispatchQueue.MainQueue.DispatchAsync(() =>
+            //{
 
-            IvImage.Frame = new CGRect(0, 0, width, height);
+                //IvImage.Frame = new CGRect(0, 0, width, height);
 
-            IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
+                IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
 
-            this.Hidden = false;
+                if (image != null)
+                {
+                    IvImage.Image = image;
+                }
 
-            if (image != null)
-            {
-                IvImage.Image = image;
-            }
-
-            _tableView.EndUpdates();
+                this.Hidden = false;
+            //});
         }
     }
 }
