@@ -1,5 +1,6 @@
 ﻿using CatBreed.ApiClient;
 using CatBreed.ApiClient.Models;
+using CatBreed.ApiClient.ViewModels;
 using CatBreed.Entities;
 using CatBreed.iOS.Controllers;
 using CatBreed.iOS.ListViews.Cells.CatImageTableCell;
@@ -22,7 +23,10 @@ namespace CatBreed.iOS
     {
         private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
-        private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
+        private IDeviceService _deviceService => ServiceLocator.Instance.Get<IDeviceService>();
+
+        private const int _size = 15;
+        private const string _remoteHostName = "www.google.com";
 
         private List<ApiClient.Models.CatBreedModel> _catBreedViewModels;
         private string _queryBreed;
@@ -30,9 +34,9 @@ namespace CatBreed.iOS
         private List<CatEntity> _catEntities;
         private CatBreedRepository _catBreedRepository;
         private ReachabilityService _internetReachability;
-
         private ReachabilityService _hostReachability;
         private bool _isOnline;
+        private CatBreedViewModel _viewModel;
 
         public ViewController() : base("ViewController", null)
         {
@@ -47,7 +51,7 @@ namespace CatBreed.iOS
             base.ViewDidLoad();
             // Perform any additional setup after loading the view, typically from a nib.
 
-            const string remoteHostName = "www.google.com";
+            _viewModel = new CatBreedViewModel();
 
             _catBreedViewModels = new List<ApiClient.Models.CatBreedModel>();
 
@@ -65,59 +69,56 @@ namespace CatBreed.iOS
 
             var catImageSource = new CatImageViewSource(_catBreedViewModels, (data) =>
             {
-                ShowProgressBar(true);
-
                 if (!string.IsNullOrEmpty(data.Id))
                 {
-                    //_svSearch.SetQuery(data.Id, true);
-                    _queryBreed = data.Id;
-                }
+                    ShowProgressBar(true);
 
-                QueryBreedData();
+                    //_list.Visibility = ViewStates.Invisible;
+
+                    //_svSearch.ClearFocus();
+
+                    _queryBreed = data.Id;
+
+                    QueryBreedData();
+                }
             }, (data) =>
             {
                 ShowProgressBar(true);
 
                 Task.Factory.StartNew(() =>
                 {
-                    _catEntities = _catBreedRepository.LoadAll().ToList();
-
-                    var catEntity = _catEntities.FirstOrDefault(p => p.Name == data.Name);
-
-                    var isExist = catEntity != null;
-
-                    if (!isExist)
+                    _viewModel.DownloadAndSaveImage(data, (status) =>
                     {
-                        var path = _fileService.DownloadImage(data.Name, data.Url);
-
-                        _catBreedRepository.InsertOrReplace(new CatEntity()
-                        {
-                            Name = data.Name,
-                            Height = data.Height,
-                            Width = data.Width,
-                            Url = path
-                        });
-
                         InvokeOnMainThread(() =>
                         {
-                            UIAlertController alert = UIAlertController.Create("Notify", "Data saved!", UIAlertControllerStyle.Alert);
+                            var title = "";
+                            var message = "";
+
+                            switch (status)
+                            {
+                                case SaveStatus.EXIST:
+
+                                    title = "Error";
+
+                                    message = "Data already exists!";
+
+                                    break;
+                                case SaveStatus.SUCCESS:
+
+                                    title = "Notify";
+
+                                    message = "Data saved!";
+
+                                    break;
+                            }
+
+                            UIAlertController alert = UIAlertController.Create(title, message, UIAlertControllerStyle.Alert);
 
                             alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
 
                             this.PresentViewController(alert, true, null);
                         });
-                    }
-                    else
-                    {
-                        InvokeOnMainThread(() =>
-                        {
-                            UIAlertController alert = UIAlertController.Create("Error", "Data already exists!", UIAlertControllerStyle.Alert);
-
-                            alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
-
-                            this.PresentViewController(alert, true, null);
-                        });
-                    }
+                    });
 
                     ShowProgressBar(false);
                 });
@@ -125,7 +126,7 @@ namespace CatBreed.iOS
 
             catImageSource.SetOnScrolledToEnd(async () =>
             {
-                if (_deviceSerivce.IsDeviceOnline())
+                if (_deviceService.IsDeviceOnline())
                 {
                     ShowProgressBar(true);
 
@@ -133,34 +134,16 @@ namespace CatBreed.iOS
                     {
                         if (!string.IsNullOrEmpty(_queryBreed))
                         {
-                            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, 10) as List<ReferenceImage>;
-
-                            if (tempReferenceModels.Count > 10)
-                            {
-                                tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
-                            }
-
-                            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedModels(QueryType.SAMPLE));
-
-                            ShowProgressBar(false);
+                            _catBreedViewModels.AddRange(await _viewModel.QueryCatImageType(_queryBreed, (int)tableView.NumberOfRowsInSection(0) + _size));
                         }
                         else
                         {
-                            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_catBreedViewModels.Count + 10) as List<ApiClient.TheCatModel>;
+                            var catBreedModes = await _viewModel.QueryCatBreed((int)tableView.NumberOfRowsInSection(0) + _size);
 
-                            if (tempCatBreedModels.Count > 10)
+                            foreach (var item in catBreedModes)
                             {
-                                tempCatBreedModels = tempCatBreedModels.GetRange(tempCatBreedModels.Count - 10, 10);
+                                _catBreedViewModels.Add(item);
                             }
-
-                            foreach (var item in tempCatBreedModels)
-                            {
-                                var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                                _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
-                            }
-
-                            ShowProgressBar(false);
                         }
                     }
                     catch (Exception ex)
@@ -169,7 +152,7 @@ namespace CatBreed.iOS
                         {
                             ShowProgressBar(false);
 
-                            UIAlertController alert = UIAlertController.Create("Error", "Too many request!", UIAlertControllerStyle.Alert);
+                            UIAlertController alert = UIAlertController.Create("Error", "To many request!", UIAlertControllerStyle.Alert);
 
                             alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
 
@@ -178,7 +161,63 @@ namespace CatBreed.iOS
                     }
 
                     tableView.ReloadData();
+
+                    ShowProgressBar(false);
                 }
+                //if (_deviceService.IsDeviceOnline())
+                //{
+                //    ShowProgressBar(true);
+
+                //    try
+                //    {
+                //        if (!string.IsNullOrEmpty(_queryBreed))
+                //        {
+                //            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, 10) as List<ReferenceImage>;
+
+                //            if (tempReferenceModels.Count > 10)
+                //            {
+                //                tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
+                //            }
+
+                //            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedModels(QueryType.SAMPLE));
+
+                //            ShowProgressBar(false);
+                //        }
+                //        else
+                //        {
+                //            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_catBreedViewModels.Count + 10) as List<ApiClient.TheCatModel>;
+
+                //            if (tempCatBreedModels.Count > 10)
+                //            {
+                //                tempCatBreedModels = tempCatBreedModels.GetRange(tempCatBreedModels.Count - 10, 10);
+                //            }
+
+                //            foreach (var item in tempCatBreedModels)
+                //            {
+                //                var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
+
+                //                _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
+                //            }
+
+                //            ShowProgressBar(false);
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        InvokeOnMainThread(() =>
+                //        {
+                //            ShowProgressBar(false);
+
+                //            UIAlertController alert = UIAlertController.Create("Error", "Too many request!", UIAlertControllerStyle.Alert);
+
+                //            alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
+
+                //            this.PresentViewController(alert, true, null);
+                //        });
+                //    }
+
+                //    tableView.ReloadData();
+                //}
             });
 
             tableView.Source = catImageSource;
@@ -187,7 +226,7 @@ namespace CatBreed.iOS
             tableView.RowHeight = 250f;
             tableView.EstimatedRowHeight = 50f;
 
-            _hostReachability = ReachabilityService.ReachabilityWithHostName(remoteHostName);
+            _hostReachability = ReachabilityService.ReachabilityWithHostName(_remoteHostName);
 
             _hostReachability.StartNotifier();
 
@@ -195,7 +234,7 @@ namespace CatBreed.iOS
 
             _internetReachability.StartNotifier();
 
-            UpdateInterfaceWithReachability(_deviceSerivce.IsDeviceOnline());
+            UpdateInterfaceWithReachability(_deviceService.IsDeviceOnline());
 
             resetButton.UserInteractionEnabled = true;
 
@@ -216,7 +255,7 @@ namespace CatBreed.iOS
 
             ShowProgressBar(true);
 
-            if (_deviceSerivce.IsDeviceOnline())
+            if (_deviceService.IsDeviceOnline())
             {
                 QueryBreedData();
             }
@@ -273,24 +312,13 @@ namespace CatBreed.iOS
 
             Task.Factory.StartNew(async () =>
             {
-                if (!_isOnline)
+                if (!isOnline)
                 {
-                    _catEntities = _catBreedRepository.LoadAll().ToList();
-
-                    var tempCatBreedViewModels = _catEntities.ToCatBreedModels();
-
-                    _catBreedViewModels.AddRange(tempCatBreedViewModels);
+                    _catBreedViewModels.AddRange(_viewModel.QueryAllImageFromDatabase());
                 }
                 else
                 {
-                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
-
-                    foreach (var item in tempCatBreedModels)
-                    {
-                        var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                        _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
-                    }
+                    _catBreedViewModels.AddRange(await _viewModel.QueryCatBreed(_size));
                 }
 
                 InvokeOnMainThread(() =>
@@ -300,6 +328,38 @@ namespace CatBreed.iOS
                     ShowProgressBar(false);
                 });
             });
+
+            //_catBreedViewModels.Clear();
+
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    if (!_isOnline)
+            //    {
+            //        _catEntities = _catBreedRepository.LoadAll().ToList();
+
+            //        var tempCatBreedViewModels = _catEntities.ToCatBreedModels();
+
+            //        _catBreedViewModels.AddRange(tempCatBreedViewModels);
+            //    }
+            //    else
+            //    {
+            //        var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
+
+            //        foreach (var item in tempCatBreedModels)
+            //        {
+            //            var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
+
+            //            _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage));
+            //        }
+            //    }
+
+            //    InvokeOnMainThread(() =>
+            //    {
+            //        tableView.ReloadData();
+
+            //        ShowProgressBar(false);
+            //    });
+            //});
         }
 
         private void QueryBreedData()
@@ -308,38 +368,15 @@ namespace CatBreed.iOS
             {
                 if (!string.IsNullOrEmpty(_queryBreed))
                 {
-                    try
-                    {
-                        var referenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed) as List<ReferenceImage>;
+                    _catBreedViewModels.Clear();
 
-                        _catBreedViewModels.Clear();
-
-                        _catBreedViewModels.AddRange(referenceModels.ToCatBreedModels(QueryType.SAMPLE));
-                    }
-                    catch (Exception sie)
-                    {
-                        InvokeOnMainThread(() =>
-                        {
-                            UIAlertController alert = UIAlertController.Create("Error", "Breed not found, please try another type\nFor example: beng (first 4 digits)", UIAlertControllerStyle.Alert);
-
-                            alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
-
-                            this.PresentViewController(alert, true, null);
-                        });
-                    }
+                    _catBreedViewModels.AddRange(await _viewModel.QueryCatImageType(_queryBreed));
                 }
                 else
                 {
-                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
-
                     _catBreedViewModels.Clear();
 
-                    foreach (var item in tempCatBreedModels)
-                    {
-                        var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                        _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage, QueryType.BREED));
-                    }
+                    _catBreedViewModels.AddRange(await _viewModel.QueryCatBreed(_size));
                 }
 
                 InvokeOnMainThread(() =>
@@ -349,6 +386,51 @@ namespace CatBreed.iOS
 
                 ShowProgressBar(false);
             });
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    if (!string.IsNullOrEmpty(_queryBreed))
+            //    {
+            //        try
+            //        {
+            //            var referenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed) as List<ReferenceImage>;
+
+            //            _catBreedViewModels.Clear();
+
+            //            _catBreedViewModels.AddRange(referenceModels.ToCatBreedModels(QueryType.SAMPLE));
+            //        }
+            //        catch (Exception sie)
+            //        {
+            //            InvokeOnMainThread(() =>
+            //            {
+            //                UIAlertController alert = UIAlertController.Create("Error", "Breed not found, please try another type\nFor example: beng (first 4 digits)", UIAlertControllerStyle.Alert);
+
+            //                alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Cancel, null));
+
+            //                this.PresentViewController(alert, true, null);
+            //            });
+            //        }
+            //    }
+            //    else
+            //    {
+            //        var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<ApiClient.TheCatModel>;
+
+            //        _catBreedViewModels.Clear();
+
+            //        foreach (var item in tempCatBreedModels)
+            //        {
+            //            var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
+
+            //            _catBreedViewModels.Add(item.ToCatBreedModel(referenceImage, QueryType.BREED));
+            //        }
+            //    }
+
+            //    InvokeOnMainThread(() =>
+            //    {
+            //        tableView.ReloadData();
+            //    });
+
+            //    ShowProgressBar(false);
+            //});
         }
 
         private void ShowProgressBar(bool isShow)

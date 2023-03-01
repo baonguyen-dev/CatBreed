@@ -2,6 +2,7 @@
 using CatBreed.Entities;
 using CatBreed.Repositories;
 using CatBreed.ServiceLocators.DI;
+using CatBreed.ServiceLocators.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,20 @@ using System.Threading.Tasks;
 
 namespace CatBreed.ApiClient.ViewModels
 {
+    public enum SaveStatus
+    {
+        EXIST,
+        SUCCESS
+    }
+
     public class CatBreedViewModel
     {
         private const int _count = 15;
 
         private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
+        private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
 
-        public async Task<List<CatTypeEntity>> GetAllCatType()
+        public async Task<List<CatTypeModel>> GetAllCatType()
         {
             var catTypeRepository = new CatTypeRepository();
 
@@ -38,7 +46,7 @@ namespace CatBreed.ApiClient.ViewModels
                 catTypeRepository.InsertAll(entities);
             }
 
-            return entities;
+            return entities.ToCatBreedViewModels();
         }
 
         public async Task<List<CatBreedModel>> QueryCatBreed(int size)
@@ -83,6 +91,56 @@ namespace CatBreed.ApiClient.ViewModels
             }
 
             return referenceModels.ToCatBreedModels(QueryType.SAMPLE);
+        }
+
+        public List<CatBreedModel> QueryAllImageFromDatabase()
+        {
+            var catBreedRepository = new CatBreedRepository();
+
+            var catEntities = catBreedRepository.LoadAll().ToList();
+
+            return catEntities.ToCatBreedModels();
+        }
+
+        public void DownloadAndSaveImage(CatBreedModel data, Action<SaveStatus> action)
+        {
+            var catBreedRepository = new CatBreedRepository();
+
+            var catEntities = catBreedRepository.LoadAll().ToList();
+
+            var catEntity = catEntities.FirstOrDefault(p => p.Name == data.Name);
+
+            var isExist = catEntity != null;
+
+            if (!isExist)
+            {
+                var path = _fileService.DownloadImage(data.Name, data.Url);
+
+                catBreedRepository.InsertOrReplace(new CatEntity()
+                {
+                    Name = data.Name,
+                    Height = data.Height,
+                    Width = data.Width,
+                    Url = path
+                });
+
+                action?.Invoke(SaveStatus.SUCCESS);
+            }
+            else
+            {
+                action?.Invoke(SaveStatus.EXIST);
+            }
+        }
+
+        public List<CatBreedModel> QueryCatBreedFromDatabase(string name)
+        {
+            var catBreedRepository = new CatBreedRepository();
+
+            var catEntities = catBreedRepository.LoadAll().ToList();
+
+            var tempCatEntities = catEntities.Where(p => p.Name.ToLower().Contains(name.ToLower())).ToList();
+
+            return tempCatEntities.ToCatBreedModels();
         }
     }
 }

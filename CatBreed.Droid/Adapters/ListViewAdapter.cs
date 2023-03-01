@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using static CatBreed.Droid.Adapters.ListViewAdapter;
 
 namespace CatBreed.Droid.Adapters
@@ -101,22 +102,34 @@ namespace CatBreed.Droid.Adapters
 
                 if (!_deviceSerivce.IsDeviceOnline())
                 {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.InPreferredConfig = Bitmap.Config.Argb8888;
-                    Bitmap bitmap = BitmapFactory.DecodeFile(_fileService.ReconstructImagePath(_items[position].Url), options);
+                    Task.Factory.StartNew(() =>
+                    {
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.InPreferredConfig = Bitmap.Config.Argb8888;
+                        Bitmap bitmap = BitmapFactory.DecodeFile(_fileService.ReconstructImagePath(_items[position].Url), options);
 
-                    Glide.With(_context)
-                        .Load(bitmap)
-                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
-                        .Into(vh.IvImage);
+                        ((Activity)_context).RunOnUiThread(() =>
+                        {
+                            Glide.With(_context)
+                                .Load(bitmap)
+                                .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                                .Into(vh.IvImage);
+                        });
+                    });
                 }
                 else
                 {
-                    Glide
-                        .With(_context)
-                        .Load(_items[position].Url)
-                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
-                        .Into(vh.IvImage);
+                    Task.Factory.StartNew(() =>
+                    {
+                        ((Activity)_context).RunOnUiThread(() =>
+                        {
+                            Glide
+                                .With(_context)
+                                .Load(_items[position].Url)
+                                .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                                .Into(vh.IvImage);
+                        });
+                    });
                 }
             }
             else

@@ -30,6 +30,7 @@ namespace CatBreed.Droid.Adapters
         public class ViewHolder: Java.Lang.Object
         {
             public TextView Name { get; set; }
+            public int Position { get; set; }
         }
 
         public override int Count => _items != null ? _items.Count : 0;
@@ -62,10 +63,11 @@ namespace CatBreed.Droid.Adapters
             }
             // Set the results into TextViews
             holder.Name.Text = _items[position].Name;
+            holder.Position = position;
 
             holder.Name.Click += (sender, args) =>
             {
-                _onItemClicked?.Invoke(_items[position]);
+                _onItemClicked?.Invoke(_items[holder.Position]);
             };
 
             return view;
