@@ -38,6 +38,8 @@ namespace CatBreed.Droid.Activities
     [Activity(Label = "HomeActivity")]
     public class HomeActivity : BaseActivity, SearchView.IOnQueryTextListener
     {
+        private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
+        private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceService => ServiceLocator.Instance.Get<IDeviceService>();
 
         private const int _size = 15;
@@ -72,7 +74,7 @@ namespace CatBreed.Droid.Activities
 
             _svSearch.SetOnQueryTextListener(this);
 
-            _viewModel = new CatBreedViewModel();
+            _viewModel = new CatBreedViewModel(_catBreedClient, _fileService);
 
             _catBreedViewModels = new List<CatBreedModel>();
 

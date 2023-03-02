@@ -32,12 +32,8 @@ namespace CatBreed.iOS
 
         private List<ApiClient.Models.CatBreedModel> _catBreedViewModels;
         private string _queryBreed;
-        private List<ApiClient.TheCatModel> _catBreedModels;
-        private List<CatEntity> _catEntities;
-        private CatBreedRepository _catBreedRepository;
         private ReachabilityService _internetReachability;
         private ReachabilityService _hostReachability;
-        private bool _isOnline;
         private CatBreedViewModel _viewModel;
         private List<CatTypeModel> _catTypesViewModel;
         private SearchViewSource _searchViewSource;
@@ -55,11 +51,9 @@ namespace CatBreed.iOS
             base.ViewDidLoad();
             // Perform any additional setup after loading the view, typically from a nib.
 
-            _viewModel = new CatBreedViewModel();
+            _viewModel = new CatBreedViewModel(_catBreedClient, _fileService);
 
             _catBreedViewModels = new List<ApiClient.Models.CatBreedModel>();
-
-            _catBreedRepository = new CatBreedRepository();
 
             searchBar.Delegate = this;
 
@@ -310,8 +304,6 @@ namespace CatBreed.iOS
 
         private void UpdateInterfaceWithReachability(bool isOnline)
         {
-            _isOnline = isOnline;
-            
             ShowProgressBar(true);
 
             _catBreedViewModels.Clear();

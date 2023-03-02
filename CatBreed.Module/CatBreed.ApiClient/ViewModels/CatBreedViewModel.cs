@@ -21,8 +21,16 @@ namespace CatBreed.ApiClient.ViewModels
     {
         private const int _count = 15;
 
-        private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
-        private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
+        private ICatBreedClient _catBreedClient;
+
+        private IFileService _fileService;
+
+        public CatBreedViewModel(ICatBreedClient catBreedClient, IFileService fileService)
+        {
+            _catBreedClient = catBreedClient;
+
+            _fileService = fileService;
+        }
 
         public async Task<List<CatTypeModel>> GetAllCatType()
         {

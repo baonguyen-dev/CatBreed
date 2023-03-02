@@ -17,13 +17,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CatBreed.Module", "CatBreed
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.ApiClient", "CatBreed.Module\CatBreed.ApiClient\CatBreed.ApiClient.csproj", "{81B57949-C230-4041-AA65-AD487F4FC120}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBreed.Utilities", "CatBreed.Core\CatBreed.Utilities\CatBreed.Utilities.csproj", "{63800386-2297-47EB-99DA-FA18EDE4FB4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.Utilities", "CatBreed.Core\CatBreed.Utilities\CatBreed.Utilities.csproj", "{63800386-2297-47EB-99DA-FA18EDE4FB4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBreed.Repositories", "CatBreed.Core\CatBreed.Repositories\CatBreed.Repositories.csproj", "{7DB05A57-4F91-4158-8B20-518C203697C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.Repositories", "CatBreed.Core\CatBreed.Repositories\CatBreed.Repositories.csproj", "{7DB05A57-4F91-4158-8B20-518C203697C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBreed.Entities", "CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj", "{9D2DB8D8-1615-4713-B233-279B9309A43F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.Entities", "CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj", "{9D2DB8D8-1615-4713-B233-279B9309A43F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBreed.Mobile", "CatBreed.Mobile\CatBreed.Mobile.csproj", "{02D691F1-DCE0-4078-A92C-291020FFF31E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.Mobile", "CatBreed.Mobile\CatBreed.Mobile.csproj", "{02D691F1-DCE0-4078-A92C-291020FFF31E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBreed.NUnitTest", "CatBreed.NUnitTest\CatBreed.NUnitTest.csproj", "{5430C62D-350C-4795-AD8D-B89E3C56A713}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,6 +146,18 @@ Global
 		{02D691F1-DCE0-4078-A92C-291020FFF31E}.Release|iPhone.Build.0 = Release|Any CPU
 		{02D691F1-DCE0-4078-A92C-291020FFF31E}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{02D691F1-DCE0-4078-A92C-291020FFF31E}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|iPhone.Build.0 = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{5430C62D-350C-4795-AD8D-B89E3C56A713}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
