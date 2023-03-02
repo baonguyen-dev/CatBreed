@@ -70,6 +70,7 @@
     <Compile Include="Activities\BaseActivity.cs" />
     <Compile Include="Services\DroidDeviceService.cs" />
     <Compile Include="BroadcastService\NetworkChangeReceiver.cs" />
+    <Compile Include="Adapters\SearchListAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -107,19 +108,27 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\ic_launcher_foreground.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\ic_launcher_round.png" />
     <AndroidResource Include="Resources\layout\home_activity.xml">
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
     <AndroidResource Include="Resources\layout\base_activity.xml">
-      <SubType></SubType>
-      <Generator></Generator>
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
+    </AndroidResource>
+    <AndroidResource Include="Resources\layout\search_list_layout.xml">
+      <SubType>
+      </SubType>
+      <Generator>
+      </Generator>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\drawable\" />
-    <Folder Include="Activities\" />
     <Folder Include="Utils\" />
-    <Folder Include="BroadcastService\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xamarin.Android.Glide">

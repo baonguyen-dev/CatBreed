@@ -24,20 +24,25 @@ namespace CatBreed.ApiClient
         {
         }
 
-        public async Task<IList<CatBreedModel>> GetCatBreed(int limit = 10)
+        public async Task<IList<TheCatModel>> GetCatBreed(int limit = 0)
         {
-            var request = new HttpRequesMessageBuilder()
+            var requestBuilder = new HttpRequesMessageBuilder()
                .SetBaseUrl(BaseUrl.ToString())
                .SetApiEndpoint(string.Format(URL_END_GET_BREED))
                .SetMethod(HttpMethod.Get)
-               .AddParameter("limit", limit.ToString())
-               .AddHeader("x-api-key", "live_UUHGO2ZVXZYewuo2aFMAKaHi7OWzUYHct8Hf6OprNNXT4xbkSf95hCLFxrNKKPpe")
-               .Build();
+               .AddHeader("x-api-key", "live_UUHGO2ZVXZYewuo2aFMAKaHi7OWzUYHct8Hf6OprNNXT4xbkSf95hCLFxrNKKPpe");
 
-            return await SendRequest<IList<CatBreedModel>>(request);
+            if (limit > 0)
+            {
+                requestBuilder.AddParameter("limit", limit.ToString());
+            }
+
+            var request = requestBuilder.Build();
+
+            return await SendRequest<IList<TheCatModel>>(request);
         }
 
-        public async Task<IList<ReferenceImage>> GetCatBreedIds(string id, int limit = 10)
+        public async Task<IList<ReferenceImage>> GetCatBreedIds(string id, int limit = 20)
         {
             var request = new HttpRequesMessageBuilder()
                .SetBaseUrl(BaseUrl.ToString())

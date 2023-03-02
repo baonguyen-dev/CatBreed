@@ -6,13 +6,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CatBreed.Core\CatBreed.ApiLocators\CatBreed.ApiLocators.csproj" />
+    <ProjectReference Include="..\..\CatBreed.Core\CatBreed.Repositories\CatBreed.Repositories.csproj" />
     <ProjectReference Include="..\..\CatBreed.Core\CatBreed.Utilities\CatBreed.Utilities.csproj" />
     <ProjectReference Include="..\..\CatBreed.Core\CatBreed.Entities\CatBreed.Entities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="ViewModels\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ViewModels\" />
   </ItemGroup>
 </Project>

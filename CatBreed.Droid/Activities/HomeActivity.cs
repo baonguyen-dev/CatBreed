@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,8 +14,10 @@ using Android.Runtime;
 using Android.Service.QuickSettings;
 using Android.Views;
 using Android.Widget;
+using AndroidX.Lifecycle;
 using AndroidX.RecyclerView.Widget;
 using CatBreed.ApiClient;
+using CatBreed.ApiClient.Models;
 using CatBreed.ApiClient.ViewModels;
 using CatBreed.ApiLocators.Models;
 using CatBreed.Droid.Adapters;
@@ -23,7 +26,12 @@ using CatBreed.Entities;
 using CatBreed.Repositories;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using Java.Util;
+using static System.Net.Mime.MediaTypeNames;
+using static Android.App.DownloadManager;
 using static Android.Content.ClipData;
+using static Android.Graphics.ColorSpace;
+using static AndroidX.RecyclerView.Widget.RecyclerView;
 
 namespace CatBreed.Droid.Activities
 {
@@ -34,25 +42,29 @@ namespace CatBreed.Droid.Activities
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceService => ServiceLocator.Instance.Get<IDeviceService>();
 
-        private List<CatBreedViewModel> _catBreedViewModels;
+        private const int _size = 15;
+        private List<CatBreedModel> _catBreedViewModels;
         private RecyclerView _rcvImage;
-        private Android.Widget.SearchView _svSearch;
+        private SearchView _svSearch;
         private ListViewAdapter _listViewAdapter;
         private string _queryBreed;
-        private List<CatBreedModel> _catBreedModels;
         private ProgressBar _pbWaiting;
-        private CatBreedRepository _catBreedRepository;
-        private List<CatEntity> _catEntities;
         private NetworkChangeReceiver _networkChangeReceiver;
         private Button _btnReset;
+        ListView _list;
+        SearchListAdapter _adapter;
+        private List<CatTypeModel> _catTypesViewModel;
+        private CatBreedViewModel _viewModel;
 
         protected override void OnCreate(Bundle savedInstanceState)
-        {
+        {   
             base.OnCreate(savedInstanceState);
 
             SetContentView(Resource.Layout.home_activity);
 
-            _svSearch = FindViewById<Android.Widget.SearchView>(Resource.Id.sv_search);
+            _list = FindViewById<ListView>(Resource.Id.listview);
+
+            _svSearch = FindViewById<SearchView>(Resource.Id.sv_search);
 
             _rcvImage = FindViewById<RecyclerView>(Resource.Id.rcv_image);
 
@@ -60,9 +72,63 @@ namespace CatBreed.Droid.Activities
 
             _btnReset = FindViewById<Button>(Resource.Id.btn_clear);
 
+            _svSearch.SetOnQueryTextListener(this);
+
+            _viewModel = new CatBreedViewModel(_catBreedClient, _fileService);
+
+            _catBreedViewModels = new List<CatBreedModel>();
+
+            _catTypesViewModel = new List<CatTypeModel>();
+
+            Task.Factory.StartNew(async () =>
+            {
+                _catTypesViewModel.AddRange(await _viewModel.GetAllCatType());
+
+                _adapter.SetListItem(_catTypesViewModel);
+            });
+
+            _adapter = new SearchListAdapter(this, _catTypesViewModel, (model) =>
+            {
+                ShowProgressBar(true);
+
+                if (_deviceService.IsDeviceOnline())
+                {
+                    _queryBreed = model.Type;
+
+                    _list.Visibility = ViewStates.Invisible;
+
+                    _svSearch.ClearFocus();
+
+                    QueryBreedData();
+                }
+            });
+
+            _list.Adapter = _adapter;
+
             _btnReset.Click += (sender, args) =>
             {
-                _svSearch.SetQuery("", true);
+                ShowProgressBar(true);
+
+                if (_deviceService.IsDeviceOnline())
+                {
+                    _svSearch.SetQuery("", false);
+
+                    _svSearch.ClearFocus();
+
+                    _queryBreed = "";
+
+                    QueryBreedData();
+                }
+                else
+                {
+                    _catBreedViewModels.Clear();
+
+                    _catBreedViewModels.AddRange(_viewModel.QueryAllImageFromDatabase());
+
+                    _listViewAdapter.NotifyDataSetChanged();
+
+                    ShowProgressBar(false);
+                }
             };
 
             _networkChangeReceiver = new NetworkChangeReceiver((isOnline) =>
@@ -75,22 +141,11 @@ namespace CatBreed.Droid.Activities
                 {
                     if (!isOnline)
                     {
-                        _catEntities = _catBreedRepository.LoadAll().ToList();
-
-                        var tempCatBreedViewModels = _catEntities.ToCatBreedViewModels();
-
-                        _catBreedViewModels.AddRange(tempCatBreedViewModels);
+                        _catBreedViewModels.AddRange(_viewModel.QueryAllImageFromDatabase());
                     }
                     else
                     {
-                        var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
-
-                        foreach (var item in tempCatBreedModels)
-                        {
-                            var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                            _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
-                        }
+                        _catBreedViewModels.AddRange(await _viewModel.QueryCatBreed(_size));
                     }
 
                     RunOnUiThread(() =>
@@ -104,12 +159,6 @@ namespace CatBreed.Droid.Activities
 
             RegisterReceiver(_networkChangeReceiver, new IntentFilter(ConnectivityManager.ConnectivityAction));
 
-            _svSearch.SetOnQueryTextListener(this);
-
-            _catBreedViewModels = new List<CatBreedViewModel>();
-
-            _catBreedRepository = new CatBreedRepository();
-
             StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(1, LinearLayoutManager.Vertical);
 
             _rcvImage.SetLayoutManager(staggeredGridLayoutManager);
@@ -118,7 +167,15 @@ namespace CatBreed.Droid.Activities
             {
                 if (!string.IsNullOrEmpty(data.Id))
                 {
-                    _svSearch.SetQuery(data.Id, true);
+                    ShowProgressBar(true);
+
+                    _list.Visibility = ViewStates.Invisible;
+
+                    _svSearch.ClearFocus();
+
+                    _queryBreed = data.Id;
+
+                    QueryBreedData();
                 }
             }, (data) =>
             {
@@ -126,44 +183,29 @@ namespace CatBreed.Droid.Activities
 
                 Task.Factory.StartNew(() =>
                 {
-                    _catEntities = _catBreedRepository.LoadAll().ToList();
-
-                    var catEntity = _catEntities.FirstOrDefault(p => p.Name == data.Name);
-
-                    var isExist = catEntity != null;
-
-                    if (!isExist)
-                    {
-                        var path = _fileService.DownloadImage(data.Name, data.Url);
-
-                        _catBreedRepository.InsertOrReplace(new CatEntity()
-                        {
-                            Name = data.Name,
-                            Height = data.Height,
-                            Width = data.Width,
-                            Url = path
-                        });
-
-                        RunOnUiThread(() =>
-                        {
-                            AlertDialog alert = new AlertDialog.Builder(this)
-                                                    .SetTitle("Notify")
-                                                    .SetMessage("Data saved")
-                                                    .SetPositiveButton(text: "OK", handler: null)
-                                                    .Show();
-                        });
-                    }
-                    else
+                    _viewModel.DownloadAndSaveImage(data, (status) =>
                     {
                         RunOnUiThread(() =>
                         {
-                            AlertDialog alert = new AlertDialog.Builder(this)
+                            switch (status)
+                            {
+                                case SaveStatus.EXIST:
+                                    new AlertDialog.Builder(this)
                                                     .SetTitle("Error")
                                                     .SetMessage("Data already exists!")
                                                     .SetPositiveButton(text: "OK", handler: null)
                                                     .Show();
+                                    break;
+                                case SaveStatus.SUCCESS:
+                                    new AlertDialog.Builder(this)
+                                                        .SetTitle("Notify")
+                                                        .SetMessage("Data saved")
+                                                        .SetPositiveButton(text: "OK", handler: null)
+                                                        .Show();
+                                    break;
+                            }
                         });
-                    }
+                    });
 
                     ShowProgressBar(false);
                 });
@@ -174,37 +216,23 @@ namespace CatBreed.Droid.Activities
 
             var scrollListener = new ListViewScrollListenner(async () =>
             {
-                ShowProgressBar(true);
-
                 if (_deviceService.IsDeviceOnline())
                 {
+                    ShowProgressBar(true);
+
                     try
                     {
                         if (!string.IsNullOrEmpty(_queryBreed))
                         {
-                            var tempReferenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed, _listViewAdapter.ItemCount + 10) as List<ReferenceImage>;
-
-                            if (tempReferenceModels.Count > 10)
-                            {
-                                tempReferenceModels = tempReferenceModels.GetRange(tempReferenceModels.Count - 10, 10);
-                            }
-
-                            _catBreedViewModels.AddRange(tempReferenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
+                            _catBreedViewModels.AddRange(await _viewModel.QueryCatImageType(_queryBreed, _listViewAdapter.ItemCount + _size));
                         }
                         else
                         {
-                            var tempCatBreedModels = await _catBreedClient.GetCatBreed(_listViewAdapter.ItemCount + 10) as List<CatBreedModel>;
+                            var catBreedModes = await _viewModel.QueryCatBreed(_listViewAdapter.ItemCount + _size);
 
-                            if (tempCatBreedModels.Count > 10)
+                            foreach(var item in catBreedModes)
                             {
-                                tempCatBreedModels = tempCatBreedModels.GetRange(tempCatBreedModels.Count - 10, 10);
-                            }
-
-                            foreach (var item in tempCatBreedModels)
-                            {
-                                var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                                _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage));
+                                _catBreedViewModels.Add(item);
                             }
                         }
                     }
@@ -222,13 +250,13 @@ namespace CatBreed.Droid.Activities
                         });
                     }
 
-                    if (_listViewAdapter.ItemCount > 10)
+                    if (_listViewAdapter.ItemCount > _size)
                     {
                         _listViewAdapter.NotifyItemInserted(_listViewAdapter.ItemCount - 1);
                     }
-                }
 
-                ShowProgressBar(false);
+                    ShowProgressBar(false);
+                }
             });
 
             _rcvImage.AddOnScrollListener(scrollListener);
@@ -236,39 +264,36 @@ namespace CatBreed.Droid.Activities
 
         public bool OnQueryTextChange(string newText)
         {
-            if (string.IsNullOrEmpty(newText))
-            {
-                OnQueryTextSubmit(newText);
-            }
-
-            return false;
-        }
-
-        public bool OnQueryTextSubmit(string query)
-        {
-            _queryBreed = query;
-
-            ShowProgressBar(true);
-
             if (_deviceService.IsDeviceOnline())
             {
-                QueryBreedData();
+                if (!string.IsNullOrEmpty(newText))
+                {
+                    _adapter.Filter(newText);
+
+                    _list.BringToFront();
+
+                    _list.Visibility = ViewStates.Visible;
+                }
+                else
+                {
+                    _list.Visibility = ViewStates.Invisible;
+                }
             }
             else
             {
-                var tempCatEntities = _catEntities.Where(p => p.Name.ToLower().Contains(_queryBreed.ToLower())).ToList();
-
-                var tempCatBreedViewModels = tempCatEntities.ToCatBreedViewModels();
-
                 _catBreedViewModels.Clear();
 
-                _catBreedViewModels.AddRange(tempCatBreedViewModels);
+                _catBreedViewModels.AddRange(_viewModel.QueryCatBreedFromDatabase(newText));
 
                 _listViewAdapter.NotifyDataSetChanged();
 
                 ShowProgressBar(false);
             }
+            return false;
+        }
 
+        public bool OnQueryTextSubmit(string query)
+        {
             return false;
         }
 
@@ -295,38 +320,15 @@ namespace CatBreed.Droid.Activities
             {
                 if (!string.IsNullOrEmpty(_queryBreed))
                 {
-                    try
-                    {
-                        var referenceModels = await _catBreedClient.GetCatBreedIds(_queryBreed) as List<ReferenceImage>;
+                    _catBreedViewModels.Clear();
 
-                        _catBreedViewModels.Clear();
-
-                        _catBreedViewModels.AddRange(referenceModels.ToCatBreedViewModels(QueryType.SAMPLE));
-                    }
-                    catch (Exception sie)
-                    {
-                        RunOnUiThread(() =>
-                        {
-                            AlertDialog alert = new AlertDialog.Builder(this)
-                                                    .SetTitle("Error")
-                                                    .SetMessage("Breed not found, please try another type\nFor example: beng (first 4 digits)")
-                                                    .SetPositiveButton(text: "OK", handler: null)
-                                                    .Show();
-                        });
-                    }
+                    _catBreedViewModels.AddRange(await _viewModel.QueryCatImageType(_queryBreed));
                 }
                 else
                 {
-                    var tempCatBreedModels = await _catBreedClient.GetCatBreed() as List<CatBreedModel>;
-
                     _catBreedViewModels.Clear();
 
-                    foreach (var item in tempCatBreedModels)
-                    {
-                        var referenceImage = await _catBreedClient.GetReferenceImage(item.ReferenceImageId);
-
-                        _catBreedViewModels.Add(item.ToCatBreedViewModel(referenceImage, QueryType.BREED));
-                    }
+                    _catBreedViewModels.AddRange(await _viewModel.QueryCatBreed(_size));
                 }
 
                 RunOnUiThread(() =>

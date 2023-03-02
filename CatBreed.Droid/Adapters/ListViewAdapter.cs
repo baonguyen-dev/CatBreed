@@ -11,15 +11,17 @@ using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Bumptech.Glide.Request;
 using CatBreed.ApiClient;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using Google.Android.Material.Card;
 using Java.Lang;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using static CatBreed.Droid.Adapters.ListViewAdapter;
 
 namespace CatBreed.Droid.Adapters
@@ -32,13 +34,14 @@ namespace CatBreed.Droid.Adapters
             _onScrolledToEnd = onScrolledToEnd;
         }
 
-        public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
+        public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
         {
-            base.OnScrollStateChanged(recyclerView, newState);
-
-            if (!recyclerView.CanScrollVertically(1))
+            if (!recyclerView.CanScrollVertically(1) && dy > 0)
             {
                 _onScrolledToEnd?.Invoke();
+            }
+            else if (!recyclerView.CanScrollVertically(-1) && dy < 0)
+            {
             }
         }
     }
@@ -48,14 +51,15 @@ namespace CatBreed.Droid.Adapters
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceSerivce => ServiceLocator.Instance.Get<IDeviceService>();
 
-        List<CatBreedViewModel> _items;
+        List<ApiClient.Models.CatBreedModel> _items;
         Context _context;
-        Action<CatBreedViewModel> _onDownloadClicked;
-        Action<CatBreedViewModel> _onBreedClicked;
+        Action<ApiClient.Models.CatBreedModel> _onDownloadClicked;
+        Action<ApiClient.Models.CatBreedModel> _onBreedClicked;
+        int _width = 0;
 
         public override int ItemCount => _items == null ? 0 : _items.Count;
 
-        public ListViewAdapter(Context context, List<CatBreedViewModel> items, Action<CatBreedViewModel> onBreedClicked, Action<CatBreedViewModel> onDownloadClicked)
+        public ListViewAdapter(Context context, List<ApiClient.Models.CatBreedModel> items, Action<ApiClient.Models.CatBreedModel> onBreedClicked, Action<ApiClient.Models.CatBreedModel> onDownloadClicked)
         {
             _context = context;
 
@@ -64,6 +68,8 @@ namespace CatBreed.Droid.Adapters
             _onBreedClicked = onBreedClicked;
 
             _onDownloadClicked = onDownloadClicked;
+
+            _width = _deviceSerivce.GetScreenWidth();
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -74,28 +80,46 @@ namespace CatBreed.Droid.Adapters
 
             if (_items[position] != null)
             {
-                vh.TvDownload.Visibility = _items[position].QueryType == QueryType.SAMPLE ? ViewStates.Visible : ViewStates.Invisible;
+                var ratio = (double)_width / _items[position].Width;
+
+                _items[position].Width = _width;
+
+                _items[position].Height = (int)(_items[position].Height * ratio);
+
+                vh.TvDownload.Visibility = _items[position].QueryType == QueryType.SAMPLE ? ViewStates.Visible : ViewStates.Gone;
 
                 vh.TvName.Text = _items[position].Name;
 
                 if (!_deviceSerivce.IsDeviceOnline())
                 {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.InPreferredConfig = Bitmap.Config.Argb8888;
-                    Bitmap bitmap = BitmapFactory.DecodeFile(_fileService.ReconstructImagePath(_items[position].Url), options);
+                    Task.Factory.StartNew(() =>
+                    {
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.InPreferredConfig = Bitmap.Config.Argb8888;
+                        Bitmap bitmap = BitmapFactory.DecodeFile(_fileService.ReconstructImagePath(_items[position].Url), options);
 
-                    Glide.With(_context)
-                        .Load(bitmap)
-                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
-                        .Into(vh.IvImage);
+                        ((Activity)_context).RunOnUiThread(() =>
+                        {
+                            Glide.With(_context)
+                                .Load(bitmap)
+                                .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                                .Into(vh.IvImage);
+                        });
+                    });
                 }
                 else
                 {
-                    Glide
-                        .With(_context)
-                        .Load(_items[position].Url)
-                        .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
-                        .Into(vh.IvImage);
+                    Task.Factory.StartNew(() =>
+                    {
+                        ((Activity)_context).RunOnUiThread(() =>
+                        {
+                            Glide
+                                .With(_context)
+                                .Load(_items[position].Url)
+                                .Apply(new RequestOptions().Override(_items[position].Width, _items[position].Height))
+                                .Into(vh.IvImage);
+                        });
+                    });
                 }
             }
             else
@@ -121,8 +145,6 @@ namespace CatBreed.Droid.Adapters
             holder.TvDownload.Click += (sender, args) =>
             {
                 _onDownloadClicked?.Invoke(_items[holder.Tag]);
-
-                holder.TvDownload.SetTextColor(Color.ParseColor("#6a05cf"));
             };
 
             return holder;
@@ -133,11 +155,11 @@ namespace CatBreed.Droid.Adapters
             public TextView TvName { get; set; }
             public ImageView IvImage { get; set; }
             public TextView TvDownload { get; set; }
-            public RelativeLayout RltParent { get; set; }
+            public MaterialCardView RltParent { get; set; }
             public int Tag { get; set; }
             public ViewHolder(View itemView, Context context) : base(itemView)
             {
-                RltParent = itemView.FindViewById<RelativeLayout>(Resource.Id.rlv_parent);
+                RltParent = itemView.FindViewById<MaterialCardView>(Resource.Id.rlv_parent);
                 TvName = itemView.FindViewById<TextView>(Resource.Id.tv_name);
                 IvImage = itemView.FindViewById<ImageView>(Resource.Id.iv_image);
                 TvDownload = itemView.FindViewById<TextView>(Resource.Id.tv_download);

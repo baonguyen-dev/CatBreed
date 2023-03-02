@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using CatBreed.ApiClient.ViewModels;
+using CatBreed.ApiClient;
+using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using CoreFoundation;
 using CoreGraphics;
 using FFImageLoading;
 using Foundation;
@@ -21,6 +24,9 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 		private Action<int> _onDownloadClicked;
         private Action<int> _onBreedClicked;
 		private int _position;
+        private int _width;
+        private UITableView _tableView;
+        private Dictionary<int, float> _rowHeights;
 
 		static CatImageViewCell ()
 		{
@@ -59,13 +65,17 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 			_onDownloadClicked = onDownloadClicked;
 		}
 
-		public void UpdateData(int position, string name, string url, QueryType queryType)
+		public void UpdateData(UITableView tableView, int position, CatBreedModel item, Dictionary<int, float> rowHeights)
 		{
-			_position = position;
+            _rowHeights = rowHeights;
 
-			TvName.Text = name;
+            _tableView = tableView;
 
-            if (queryType == QueryType.BREED)
+            _position = position;
+
+            TvName.Text = item.Name;
+
+            if (item.QueryType == QueryType.BREED)
             {
                 TvDownload.Hidden = true;
             }
@@ -79,7 +89,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                 Task.Factory.StartNew(async () =>
                 {
                     await ImageService.Instance
-                       .LoadFile(_fileService.ReconstructImagePath(url))
+                       .LoadFile(_fileService.ReconstructImagePath(item.Url))
+                       .WithCache(FFImageLoading.Cache.CacheType.Memory)
                        .AsUIImageAsync().ContinueWith(res =>
                        {
                            this.InvokeOnMainThread(() =>
@@ -87,7 +98,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result);
+                                   SetImage(res.Result, item.Width, item.Height);
                                }
                            });
                        });
@@ -98,7 +109,8 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                 Task.Factory.StartNew(async () =>
                 {
                     await ImageService.Instance
-                       .LoadUrl(url)
+                       .LoadUrl(item.Url)
+                       .WithCache(FFImageLoading.Cache.CacheType.Memory)
                        .AsUIImageAsync().ContinueWith(res =>
                        {
                            this.InvokeOnMainThread(() =>
@@ -106,7 +118,7 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
                                this.Hidden = false;
                                if (!res.IsFaulted)
                                {
-                                   SetImage(res.Result);
+                                   SetImage(res.Result, item.Width, item.Height);
                                }
                            });
                        });
@@ -115,15 +127,22 @@ namespace CatBreed.iOS.ListViews.Cells.CatImageTableCell
 
         }
 
-        public void SetImage(UIImage image)
+        public void SetImage(UIImage image, int width, int height)
         {
-            IvImage.Frame = new CGRect(0, 0, this.Frame.Width, this.Frame.Height);
-            IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
+            //DispatchQueue.MainQueue.DispatchAsync(() =>
+            //{
 
-            this.Hidden = false;
+                //IvImage.Frame = new CGRect(0, 0, width, height);
 
-            if (image != null)
-                IvImage.Image = image;
+                IvImage.ContentMode = UIViewContentMode.ScaleAspectFit;
+
+                if (image != null)
+                {
+                    IvImage.Image = image;
+                }
+
+                this.Hidden = false;
+            //});
         }
     }
 }
