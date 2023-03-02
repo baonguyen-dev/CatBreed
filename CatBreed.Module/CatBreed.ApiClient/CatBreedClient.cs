@@ -17,12 +17,12 @@ namespace CatBreed.ApiClient
 
         public CatBreedClient()
         {
-
+            
         }
 
-        public CatBreedClient(Uri baseurl, string useragent) : base(baseurl, useragent)
-        {
-        }
+        //public CatBreedClient(Uri baseurl, string useragent) : base(baseurl, useragent)
+        //{
+        //}
 
         public async Task<IList<TheCatModel>> GetCatBreed(int limit = 0)
         {

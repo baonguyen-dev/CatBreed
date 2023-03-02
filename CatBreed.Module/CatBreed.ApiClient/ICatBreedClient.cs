@@ -7,6 +7,8 @@ namespace CatBreed.ApiClient
 {
     public interface ICatBreedClient
     {
+        void Init(Uri uri, string userAgent);
+
         Task<IList<TheCatModel>> GetCatBreed(int limit = 0);
 
         Task<IList<ReferenceImage>> GetCatBreedIds(string breed = "", int limit = 20);

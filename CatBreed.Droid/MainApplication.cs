@@ -13,8 +13,6 @@ namespace CatBreed.Droid
     [Application]
     public class MainApplication : Application
     {
-        const string BASE_URL = "https://api.thecatapi.com/";
-
         public MainApplication(IntPtr handle, JniHandleOwnership ownerShip) : base(handle, ownerShip)
         {
         }
@@ -30,7 +28,7 @@ namespace CatBreed.Droid
 
         private void RegisterServices()
         {
-            ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>(new Uri(BASE_URL), string.Empty);
+            ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>();
             ServiceLocator.Instance.Register<IFileService, DroidFileService>();
             ServiceLocator.Instance.Register<IDeviceService, DroidDeviceService>();
         }

@@ -29,7 +29,9 @@ namespace CatBreed.Droid
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
-        
+        private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
+        const string BASE_URL = "https://api.thecatapi.com/";
+
         private int PERMISSION_ALL = 1;
         private string[] PERMISSIONS = {
             Android.Manifest.Permission.WriteExternalStorage,
@@ -57,6 +59,8 @@ namespace CatBreed.Droid
             base.OnCreate(savedInstanceState);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
+
+            _catBreedClient.Init(new System.Uri(BASE_URL), string.Empty);
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
             {
