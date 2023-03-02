@@ -14,6 +14,7 @@ using CatBreed.ApiClient;
 using CatBreed.ApiClient.Models;
 using CatBreed.ServiceLocators.DI;
 using CatBreed.ServiceLocators.Services;
+using Google.Android.Material.Card;
 using Java.Lang;
 using System;
 using System.Collections.Generic;
@@ -41,19 +42,8 @@ namespace CatBreed.Droid.Adapters
             }
             else if (!recyclerView.CanScrollVertically(-1) && dy < 0)
             {
-                //scrolled to TOP
             }
         }
-
-        //public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
-        //{
-        //    base.OnScrollStateChanged(recyclerView, newState);
-
-        //    if (!recyclerView.CanScrollVertically(1) && newState == RecyclerView.ScrollStateIdle)
-        //    {
-        //        _onScrolledToEnd?.Invoke();
-        //    }
-        //}
     }
 
     public class ListViewAdapter : RecyclerView.Adapter
@@ -96,7 +86,7 @@ namespace CatBreed.Droid.Adapters
 
                 _items[position].Height = (int)(_items[position].Height * ratio);
 
-                vh.TvDownload.Visibility = _items[position].QueryType == QueryType.SAMPLE ? ViewStates.Visible : ViewStates.Invisible;
+                vh.TvDownload.Visibility = _items[position].QueryType == QueryType.SAMPLE ? ViewStates.Visible : ViewStates.Gone;
 
                 vh.TvName.Text = _items[position].Name;
 
@@ -155,8 +145,6 @@ namespace CatBreed.Droid.Adapters
             holder.TvDownload.Click += (sender, args) =>
             {
                 _onDownloadClicked?.Invoke(_items[holder.Tag]);
-
-                holder.TvDownload.SetTextColor(Color.ParseColor("#6a05cf"));
             };
 
             return holder;
@@ -167,11 +155,11 @@ namespace CatBreed.Droid.Adapters
             public TextView TvName { get; set; }
             public ImageView IvImage { get; set; }
             public TextView TvDownload { get; set; }
-            public RelativeLayout RltParent { get; set; }
+            public MaterialCardView RltParent { get; set; }
             public int Tag { get; set; }
             public ViewHolder(View itemView, Context context) : base(itemView)
             {
-                RltParent = itemView.FindViewById<RelativeLayout>(Resource.Id.rlv_parent);
+                RltParent = itemView.FindViewById<MaterialCardView>(Resource.Id.rlv_parent);
                 TvName = itemView.FindViewById<TextView>(Resource.Id.tv_name);
                 IvImage = itemView.FindViewById<ImageView>(Resource.Id.iv_image);
                 TvDownload = itemView.FindViewById<TextView>(Resource.Id.tv_download);
