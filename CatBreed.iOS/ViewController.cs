@@ -23,6 +23,8 @@ namespace CatBreed.iOS
 {
     public partial class ViewController : BaseController, IUISearchBarDelegate
     {
+        const string BASE_URL = "https://api.thecatapi.com/";
+
         private ICatBreedClient _catBreedClient => ServiceLocator.Instance.Get<ICatBreedClient>();
         private IFileService _fileService => ServiceLocator.Instance.Get<IFileService>();
         private IDeviceService _deviceService => ServiceLocator.Instance.Get<IDeviceService>();
@@ -50,6 +52,8 @@ namespace CatBreed.iOS
         {
             base.ViewDidLoad();
             // Perform any additional setup after loading the view, typically from a nib.
+
+            _catBreedClient.Init(new Uri(BASE_URL), string.Empty);
 
             _viewModel = new CatBreedViewModel(_catBreedClient, _fileService);
 

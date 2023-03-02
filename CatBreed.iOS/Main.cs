@@ -9,7 +9,6 @@ namespace CatBreed.iOS
 {
     public class Application
     {
-        const string BASE_URL = "https://api.thecatapi.com/";
         // This is the main entry point of the application.
         static void Main(string[] args)
         {
@@ -23,7 +22,7 @@ namespace CatBreed.iOS
 
         private static void RegisterServices()
         {
-            ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>(new Uri(BASE_URL), string.Empty);
+            ServiceLocator.Instance.Register<ICatBreedClient, CatBreedClient>();
             ServiceLocator.Instance.Register<IFileService, IOSFileService>();
             ServiceLocator.Instance.Register<IDeviceService, IOSDeviceService>();
         }
